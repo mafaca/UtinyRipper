@@ -61,8 +61,9 @@ namespace uTinyRipperGUI
 		{
 			while(true)
 			{
-				System.Windows.Forms.FolderBrowserDialog folderDialog = new System.Windows.Forms.FolderBrowserDialog();
+				Ookii.Dialogs.VistaFolderBrowserDialog folderDialog = new Ookii.Dialogs.VistaFolderBrowserDialog();
 				folderDialog.ShowNewFolderButton = true;
+			    folderDialog.UseDescriptionForTitle = true;
 				folderDialog.Description = $"Select export folder. New folder '{GameStructure.Name}' will be created inside selected one";
 #if VIRTUAL
 				System.Windows.Forms.DialogResult result = System.Windows.Forms.DialogResult.OK;

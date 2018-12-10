@@ -122,6 +122,10 @@
     <ApplicationIcon>Resources\URIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Ookii.Dialogs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0c15020868fd6249, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libraries\x86\Ookii.Dialogs.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -303,6 +307,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\URIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Libraries\x86\Ookii.Dialogs.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
