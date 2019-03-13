@@ -176,7 +176,6 @@ namespace uTinyRipper.AssetExporters
 					collections.Add(collection);
 				}
 
-#warning TODO: if IsGenerateGUIDByContent set it should build collections and write actual references with persistent GUIS, but skip dependencies
 				if (Config.IsExportDependencies)
 				{
 					foreach (Object dependency in asset.FetchDependencies(true))
@@ -193,7 +192,16 @@ namespace uTinyRipper.AssetExporters
 						}
 					}
 				}
-			}
+                else if (Config.IsGenerateGUIDByContent)
+                {
+                    foreach (Object dependency in asset.FetchDependencies(true))
+                    {
+                        if (dependency == null) continue;
+                        var collection = new PPtrExportCollection(this, DummyExporter, dependency);
+                        collections.Add(collection);
+                    }
+                }
+            }
 			depList.Clear();
 			depSet.Clear();
 			queued.Clear();
