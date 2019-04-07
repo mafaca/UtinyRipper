@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace uTinyRipper
 {
 	public static class DirectoryUtils
 	{
+        private static readonly Dictionary<string, int> _fileIndexCache = new Dictionary<string, int>();
+
 		public static bool Exists(string path)
 		{
 			return Directory.Exists(ToLongPath(path));
@@ -75,45 +76,36 @@ namespace uTinyRipper
 			return path;
 		}
 
-		public static string GetMaxIndexName(string dirPath, string fileName)
-		{
-			if (!Directory.Exists(dirPath))
-			{
-				return fileName;
-			}
+        public static string GetMaxIndexName(string dirPath, string fileName)
+        {
+            if (!Directory.Exists(dirPath))
+            {
+                return fileName;
+            }
 
-			if (fileName.Length > 245)
-			{
-				fileName = fileName.Substring(0, 245);
-			}
-			string escapeFileName = Regex.Escape(fileName);
-			Regex regex = new Regex($@"(?i)^{escapeFileName}(_[\d]+)?\.[^\.]+$");
-			List<string> files = new List<string>();
-			DirectoryInfo dirInfo = new DirectoryInfo(ToLongPath(dirPath));
-			foreach(FileInfo fileInfo in dirInfo.EnumerateFiles())
-			{
-				if(regex.IsMatch(fileInfo.Name))
-				{
-					files.Add(fileInfo.Name.ToLower());
-				}
-			}
-			if (files.Count == 0)
-			{
-				return fileName;
-			}
+            if (fileName.Length > 245)
+            {
+                fileName = fileName.Substring(0, 245);
+            }
 
-			for (int i = 1; i < int.MaxValue; i++)
-			{
-				string newName = $"{fileName}_{i}.".ToLower();
-				if (files.All(t => !t.StartsWith(newName, StringComparison.Ordinal)))
-				{
-					return $"{fileName}_{i}";
-				}
-			}
-			throw new Exception($"Can't generate unique name for file {fileName} in directory {dirPath}");
-		}
+            var longDirPath = ToLongPath(dirPath);
+            var filePathBase = Path.Combine(longDirPath, fileName);
+            if (!_fileIndexCache.TryGetValue(filePathBase, out int counter))
+            {
+                counter = 0;
+            }
 
-		public const string LongPathPrefix = @"\\?\";
+            var resultFileName = fileName;
+            while (Directory.EnumerateFiles(longDirPath, resultFileName + ".*", SearchOption.TopDirectoryOnly).Any())
+            {
+                resultFileName = fileName + "_" + counter++;
+            }
+
+            _fileIndexCache[filePathBase] = counter;
+            return resultFileName;
+        }
+
+        public const string LongPathPrefix = @"\\?\";
 		public const int MaxDirectoryLength = 248;
 	}
 }
