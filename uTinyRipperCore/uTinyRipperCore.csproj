@@ -151,7 +151,7 @@
     <Compile Include="Parser\Classes\Base\Renderer\ReceiveGI.cs" />
     <Compile Include="Parser\Classes\Camera\FieldOfViewAxis.cs" />
     <Compile Include="Parser\Classes\CanvasGroup.cs" />
-    <Compile Include="Parser\Classes\Joint\ConfigureableJoint.cs" />
+    <Compile Include="Parser\Classes\Joint\ConfigurableJoint.cs" />
     <Compile Include="Parser\Classes\Joint\FixedJoint.cs" />
     <Compile Include="Parser\Classes\Joint\ConfigurableJointMotion.cs" />
     <Compile Include="Parser\Classes\Joint\JointLimits.cs" />
