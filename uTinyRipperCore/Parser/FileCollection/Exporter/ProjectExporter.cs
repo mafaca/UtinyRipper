@@ -50,6 +50,7 @@ namespace uTinyRipper.AssetExporters
 			OverrideYamlExporter(ClassIDType.Rigidbody);
 			OverrideYamlExporter(ClassIDType.PhysicsManager);
 			OverrideYamlExporter(ClassIDType.CircleCollider2D);
+			OverrideYamlExporter(ClassIDType.HingeJoint);
 			OverrideYamlExporter(ClassIDType.PolygonCollider2D);
 			OverrideYamlExporter(ClassIDType.BoxCollider2D);
 			OverrideYamlExporter(ClassIDType.PhysicsMaterial2D);
@@ -83,11 +84,15 @@ namespace uTinyRipper.AssetExporters
 			OverrideYamlExporter(ClassIDType.SphereCollider);
 			OverrideYamlExporter(ClassIDType.CapsuleCollider);
 			OverrideYamlExporter(ClassIDType.SkinnedMeshRenderer);
+			OverrideYamlExporter(ClassIDType.FixedJoint);
 			OverrideYamlExporter(ClassIDType.BuildSettings);
 			OverrideYamlExporter(ClassIDType.CharacterController);
+			OverrideYamlExporter(ClassIDType.CharacterJoint);
+			OverrideYamlExporter(ClassIDType.SpringJoint);
 			OverrideYamlExporter(ClassIDType.WheelCollider);
 			OverrideYamlExporter(ClassIDType.NetworkManager);
 			OverrideYamlExporter(ClassIDType.MovieTexture);
+			OverrideYamlExporter(ClassIDType.ConfigurableJoint);
 			OverrideYamlExporter(ClassIDType.TerrainCollider);
 			OverrideYamlExporter(ClassIDType.TerrainData);
 			OverrideYamlExporter(ClassIDType.LightmapSettings);
@@ -121,6 +126,7 @@ namespace uTinyRipper.AssetExporters
 			OverrideYamlExporter(ClassIDType.SceneAsset);
 			OverrideYamlExporter(ClassIDType.LightmapParameters);
 			OverrideYamlExporter(ClassIDType.SpriteAtlas);
+
 
 			OverrideBinaryExporter(ClassIDType.Shader);
 			OverrideBinaryExporter(ClassIDType.AudioClip);
