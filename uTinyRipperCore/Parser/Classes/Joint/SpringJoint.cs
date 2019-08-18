@@ -54,6 +54,7 @@ namespace uTinyRipper.Classes
 			node.Add(AnchorName, Anchor.ExportYAML(container));
 			node.Add(AutoConfigureConnectedAnchorName, AutoConfigureConnectedAnchor);
 			node.Add(ConnectedAnchorName, ConnectedAnchor.ExportYAML(container));
+			node.AddSerializedVersion(2);
 
 			node.Add(SpringName, Spring);
 			node.Add(DamperName, Damper);
@@ -69,16 +70,16 @@ namespace uTinyRipper.Classes
 			node.Add(ConnectedMassScaleName, ConnectedMassScale);
 			return node;
 		}
-		public const string ConnectedBodyName = "m_ConnectedBodyName";
-		public const string AnchorName = "m_AnchorName";
-		public const string AutoConfigureConnectedAnchorName = "m_AutoConfigureConnectedAnchorName";
-		public const string ConnectedAnchorName = "m_ConnectedAnchorName";
-		public const string BreakForceName = "m_BreakForceName";
-		public const string BreakTorqueName = "m_BreakTorqueName";
-		public const string EnableCollisionName = "m_EnableCollisionName";
-		public const string EnablePreprocessingName = "m_EnablePreprocessingName";
-		public const string MassScaleName = "m_MassScaleName";
-		public const string ConnectedMassScaleName = "m_ConnectedMassScaleName";
+		public const string ConnectedBodyName = "m_ConnectedBody";
+		public const string AnchorName = "m_Anchor";
+		public const string AutoConfigureConnectedAnchorName = "m_AutoConfigureConnectedAnchor";
+		public const string ConnectedAnchorName = "m_ConnectedAnchor";
+		public const string BreakForceName = "m_BreakForce";
+		public const string BreakTorqueName = "m_BreakTorque";
+		public const string EnableCollisionName = "m_EnableCollision";
+		public const string EnablePreprocessingName = "m_EnablePreprocessing";
+		public const string MassScaleName = "m_MassScale";
+		public const string ConnectedMassScaleName = "m_ConnectedMassScale";
 
 		public const string SpringName = "m_Spring";
 		public const string DamperName = "m_Damper";

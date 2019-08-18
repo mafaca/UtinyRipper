@@ -58,12 +58,14 @@ namespace uTinyRipper.Classes
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
 			node.Add(ConnectedBodyName, ConnectedBody.ExportYAML(container));
 			node.Add(AnchorName, Anchor.ExportYAML(container));
+			node.Add(AxisName, Axis.ExportYAML(container));
 			node.Add(AutoConfigureConnectedAnchorName, AutoConfigureConnectedAnchor);
 			node.Add(ConnectedAnchorName, ConnectedAnchor.ExportYAML(container));
 
 			node.Add(UseSpringName, UseSpring);
 			node.Add(SpringName, Spring.ExportYAML(container));
 			node.Add(UseMotorName, UseMotor);
+			node.Add(MotorName, Motor.ExportYAML(container));
 			node.Add(UseLimitsName, UseLimits);
 			node.Add(LimitsName, Limits.ExportYAML(container));
 
@@ -75,22 +77,24 @@ namespace uTinyRipper.Classes
 			node.Add(ConnectedMassScaleName, ConnectedMassScale);
 			return node;
 		}
-		public const string ConnectedBodyName = "m_ConnectedBodyName";
-		public const string AnchorName = "m_AnchorName";
-		public const string AutoConfigureConnectedAnchorName = "m_AutoConfigureConnectedAnchorName";
-		public const string ConnectedAnchorName = "m_ConnectedAnchorName";
-		public const string BreakForceName = "m_BreakForceName";
-		public const string BreakTorqueName = "m_BreakTorqueName";
-		public const string EnableCollisionName = "m_EnableCollisionName";
-		public const string EnablePreprocessingName = "m_EnablePreprocessingName";
-		public const string MassScaleName = "m_MassScaleName";
-		public const string ConnectedMassScaleName = "m_ConnectedMassScaleName";
+		public const string ConnectedBodyName = "m_ConnectedBody";
+		public const string AnchorName = "m_Anchor";
+		public const string AxisName = "m_Axis";
+		public const string AutoConfigureConnectedAnchorName = "m_AutoConfigureConnectedAnchor";
+		public const string ConnectedAnchorName = "m_ConnectedAnchor";
+		public const string BreakForceName = "m_BreakForce";
+		public const string BreakTorqueName = "m_BreakTorque";
+		public const string EnableCollisionName = "m_EnableCollision";
+		public const string EnablePreprocessingName = "m_EnablePreprocessing";
+		public const string MassScaleName = "m_MassScale";
+		public const string ConnectedMassScaleName = "m_ConnectedMassScale";
 
 		public const string UseSpringName = "m_UseSpring";
-		public const string SpringName = "m_SpringName";
-		public const string UseMotorName = "m_UseMotorName";
-		public const string UseLimitsName = "m_UseLimitsName";
-		public const string LimitsName = "m_LimitsName";
+		public const string SpringName = "m_Spring";
+		public const string UseMotorName = "m_UseMotor";
+		public const string MotorName = "m_Motor";
+		public const string UseLimitsName = "m_UseLimits";
+		public const string LimitsName = "m_Limits";
 
 		public PPtr<Rigidbody> ConnectedBody { get; private set; }
 		public Vector3f Anchor { get; private set; }

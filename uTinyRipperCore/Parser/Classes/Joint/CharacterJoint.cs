@@ -57,16 +57,21 @@ namespace uTinyRipper.Classes
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
 			node.Add(ConnectedBodyName, ConnectedBody.ExportYAML(container));
 			node.Add(AnchorName, Anchor.ExportYAML(container));
+			node.Add(AxisName, Axis.ExportYAML(container));
 			node.Add(AutoConfigureConnectedAnchorName, AutoConfigureConnectedAnchor);
 			node.Add(ConnectedAnchorName, ConnectedAnchor.ExportYAML(container));
+			node.AddSerializedVersion(2);
+
 			node.Add(SwingAxisName, SwingAxis.ExportYAML(container));
 			node.Add(TwistLimitSpringName, TwistLimitSpring.ExportYAML(container));
 			node.Add(LowTwistLimitName, LowTwistLimit.ExportYAML(container));
 			node.Add(HighTwistLimitName, HighTwistLimit.ExportYAML(container));
+			node.Add(SwingLimitSpringName, SwingLimitSpring.ExportYAML(container));
 			node.Add(Swing1LimitName, Swing1Limit.ExportYAML(container));
 			node.Add(Swing2LimitName, Swing2Limit.ExportYAML(container));
 			node.Add(ProjectionDistanceName, ProjectionDistance);
 			node.Add(ProjectionAngleName, ProjectionAngle);
+
 			node.Add(BreakForceName, BreakForce);
 			node.Add(BreakTorqueName, BreakTorque);
 			node.Add(EnableCollisionName, EnableCollision);
@@ -76,26 +81,28 @@ namespace uTinyRipper.Classes
 			return node;
 		}
 
-		public const string ConnectedBodyName = "m_ConnectedBodyName";
-		public const string AnchorName = "m_AnchorName";
-		public const string AutoConfigureConnectedAnchorName = "m_AutoConfigureConnectedAnchorName";
-		public const string ConnectedAnchorName = "m_ConnectedAnchorName";
-		public const string BreakForceName = "m_BreakForceName";
-		public const string BreakTorqueName = "m_BreakTorqueName";
-		public const string EnableCollisionName = "m_EnableCollisionName";
-		public const string EnablePreprocessingName = "m_EnablePreprocessingName";
-		public const string MassScaleName = "m_MassScaleName";
-		public const string ConnectedMassScaleName = "m_ConnectedMassScaleName";
+		public const string ConnectedBodyName = "m_ConnectedBody";
+		public const string AnchorName = "m_Anchor";
+		public const string AxisName = "m_Axis";
+		public const string AutoConfigureConnectedAnchorName = "m_AutoConfigureConnectedAnchor";
+		public const string ConnectedAnchorName = "m_ConnectedAnchor";
+		public const string BreakForceName = "m_BreakForce";
+		public const string BreakTorqueName = "m_BreakTorque";
+		public const string EnableCollisionName = "m_EnableCollision";
+		public const string EnablePreprocessingName = "m_EnablePreprocessing";
+		public const string MassScaleName = "m_MassScale";
+		public const string ConnectedMassScaleName = "m_ConnectedMassScale";
 
-		public const string SwingAxisName = "m_SwingAxisName";
-		public const string TwistLimitSpringName = "m_TwistLimitSpringName";
-		public const string LowTwistLimitName = "m_LowTwistLimitName";
-		public const string HighTwistLimitName = "m_HighTwistLimitName";
-		public const string Swing1LimitName = "m_Swing1LimitName";
-		public const string Swing2LimitName = "m_Swing2LimitName";
-		public const string EnableProjectionName = "m_EnableProjectionName";
-		public const string ProjectionDistanceName = "m_ProjectionDistanceName";
-		public const string ProjectionAngleName = "m_ProjectionAngleName";
+		public const string SwingAxisName = "m_SwingAxis";
+		public const string TwistLimitSpringName = "m_TwistLimitSpring";
+		public const string LowTwistLimitName = "m_LowTwistLimit";
+		public const string HighTwistLimitName = "m_HighTwistLimit";
+		public const string SwingLimitSpringName = "m_SwingLimitSpring";
+		public const string Swing1LimitName = "m_Swing1Limit";
+		public const string Swing2LimitName = "m_Swing2Limit";
+		public const string EnableProjectionName = "m_EnableProjection";
+		public const string ProjectionDistanceName = "m_ProjectionDistance";
+		public const string ProjectionAngleName = "m_ProjectionAngle";
 
 		public PPtr<Rigidbody> ConnectedBody { get; private set; }
 		public Vector3f Anchor { get; private set; }

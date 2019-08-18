@@ -16,9 +16,9 @@ namespace uTinyRipper.Classes.Joint
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.Add("m_TargetVelocity", TargetVelocity);
-			node.Add("m_Force", Force);
-			node.Add("m_FreeSpin", FreeSpin);
+			node.Add("targetVelocity", TargetVelocity);
+			node.Add("force", Force);
+			node.Add("freeSpin", FreeSpin);
 			return node;
 		}
 

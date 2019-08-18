@@ -15,8 +15,8 @@ namespace uTinyRipper.Classes.Joint
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.Add("m_Spring", Spring);
-			node.Add("m_Damper", Damper);
+			node.Add("spring", Spring);
+			node.Add("damper", Damper);
 			return node;
 		}
 

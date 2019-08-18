@@ -18,11 +18,11 @@ namespace uTinyRipper.Classes.Joint
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.Add("Min", Min);
-			node.Add("Max", Max);
-			node.Add("Bounciness", Bounciness);
-			node.Add("BounceMinVelocity", BounceMinVelocity);
-			node.Add("ContactDistance", ContactDistance);
+			node.Add("min", Min);
+			node.Add("max", Max);
+			node.Add("bounciness", Bounciness);
+			node.Add("bounceMinVelocity", BounceMinVelocity);
+			node.Add("contactDistance", ContactDistance);
 			return node;
 		}
 

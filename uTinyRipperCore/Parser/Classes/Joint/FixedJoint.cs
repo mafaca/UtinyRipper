@@ -50,14 +50,14 @@ namespace uTinyRipper.Classes
 			node.Add(ConnectedMassScaleName, ConnectedMassScale);
 			return node;
 		}
-		public const string ConnectedBodyName = "m_ConnectedBodyName";
+		public const string ConnectedBodyName = "m_ConnectedBody";
 
-		public const string BreakForceName = "m_BreakForceName";
-		public const string BreakTorqueName = "m_BreakTorqueName";
-		public const string EnableCollisionName = "m_EnableCollisionName";
-		public const string EnablePreprocessingName = "m_EnablePreprocessingName";
-		public const string MassScaleName = "m_MassScaleName";
-		public const string ConnectedMassScaleName = "m_ConnectedMassScaleName";
+		public const string BreakForceName = "m_BreakForce";
+		public const string BreakTorqueName = "m_BreakTorque";
+		public const string EnableCollisionName = "m_EnableCollision";
+		public const string EnablePreprocessingName = "m_EnablePreprocessing";
+		public const string MassScaleName = "m_MassScale";
+		public const string ConnectedMassScaleName = "m_ConnectedMassScale";
 
 		public PPtr<Rigidbody> ConnectedBody;
 
