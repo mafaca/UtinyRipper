@@ -1,10 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace uTinyRipper.SerializedFiles
 {
 	internal sealed class TypeTree : ISerializedFileReadable
 	{
+		public TypeTree()
+		{
+		}
+
+		public TypeTree(IReadOnlyCollection<TypeTreeNode> nodes)
+		{
+			Nodes = nodes.ToArray();
+		}
+
 		/// <summary>
 		/// 5.0.0a1 and greater
 		/// </summary>
@@ -28,22 +39,23 @@ namespace uTinyRipper.SerializedFiles
 				{
 					throw new Exception($"Invalid type tree's string size {stringSize}");
 				}
-					
-				m_nodes = new TypeTreeNode[nodesCount];
-				long stringPosition = reader.BaseStream.Position + nodesCount * TypeTreeNode.NodeSize;
+
+				TypeTreeNode[] nodes = new TypeTreeNode[nodesCount];
+				long stringPosition = reader.BaseStream.Position + nodesCount * TypeTreeNode.GetNodeSize(reader.Generation);
 				for (int i = 0; i < nodesCount; i++)
 				{
 					TypeTreeNode node = new TypeTreeNode();
 					node.Read(reader, stringPosition);
-					m_nodes[i] = node;
+					nodes[i] = node;
 				}
+				Nodes = nodes;
 				reader.BaseStream.Position += stringSize;
 			}
 			else
 			{
 				List<TypeTreeNode> nodes = new List<TypeTreeNode>();
 				ReadTreeNode(reader, nodes, 0);
-				m_nodes = nodes.ToArray();
+				Nodes = nodes.ToArray();
 			}
 		}
 
@@ -60,8 +72,37 @@ namespace uTinyRipper.SerializedFiles
 			}
 		}
 
-		public IReadOnlyList<TypeTreeNode> Nodes => m_nodes;
+		public override string ToString()
+		{
+			if (Nodes == null)
+			{
+				return base.ToString();
+			}
 
-		private TypeTreeNode[] m_nodes;
+			return Nodes[0].ToString();
+		}
+
+		public StringBuilder ToString(StringBuilder sb)
+		{
+			foreach (TypeTreeNode node in Nodes)
+			{
+				node.ToString(sb).AppendLine();
+			}
+			return sb;
+		}
+
+#if DEBUG
+		public string Dump
+		{
+			get
+			{
+				StringBuilder sb = new StringBuilder();
+				ToString(sb);
+				return sb.ToString();
+			}
+		}
+#endif
+
+		public IReadOnlyList<TypeTreeNode> Nodes { get; private set; }
 	}
 }

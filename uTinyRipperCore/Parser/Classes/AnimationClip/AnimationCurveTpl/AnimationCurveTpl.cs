@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes.AnimationClips
 {
-	public struct AnimationCurveTpl<T> : IScriptStructure
+	public struct AnimationCurveTpl<T> : ISerializableStructure
 		where T : struct, IAssetReadable, IYAMLExportable
 	{
 		public AnimationCurveTpl(bool init)
@@ -77,14 +78,6 @@ namespace uTinyRipper.Classes.AnimationClips
 			}
 		}
 
-		public AnimationCurveTpl(AnimationCurveTpl<T> copy):
-			this(copy.Curve)
-		{
-			PreInfinity = copy.PreInfinity;
-			PostInfinity = copy.PostInfinity;
-			RotationOrder = copy.RotationOrder;
-		}
-
 		/// <summary>
 		/// 5.3.0 and greater
 		/// </summary>
@@ -95,11 +88,6 @@ namespace uTinyRipper.Classes.AnimationClips
 
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
-			{
-				return 2;
-			}
-
 			if (version.IsGreaterEqual(2, 1))
 			{
 				return 2;
@@ -107,14 +95,14 @@ namespace uTinyRipper.Classes.AnimationClips
 			return 1;
 		}
 
-		public IScriptStructure CreateCopy()
+		public ISerializableStructure CreateDuplicate()
 		{
-			return new AnimationCurveTpl<T>(this);
+			return new AnimationCurveTpl<T>();
 		}
 
 		public void Read(AssetReader reader)
 		{
-			m_curve = reader.ReadArray<KeyframeTpl<T>>();
+			m_curve = reader.ReadAssetArray<KeyframeTpl<T>>();
 			reader.AlignStream(AlignType.Align4);
 
 			PreInfinity = (CurveLoopTypes)reader.ReadInt32();
@@ -127,9 +115,8 @@ namespace uTinyRipper.Classes.AnimationClips
 		
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
-#warning TODO: value acording to read version (current 2017.3.0f3)
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
 			node.Add("m_Curve", Curve.ExportYAML(container));
 			node.Add("m_PreInfinity", (int)PreInfinity);
 			node.Add("m_PostInfinity", (int)PostInfinity);
@@ -147,10 +134,6 @@ namespace uTinyRipper.Classes.AnimationClips
 		{
 			return IsReadRotationOrder(version) ? RotationOrder : RotationOrder.OrderZXY;
 		}
-
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.AnimationCurveName;
 
 		public IReadOnlyList<KeyframeTpl<T>> Curve => m_curve;
 		public CurveLoopTypes PreInfinity { get; private set; }

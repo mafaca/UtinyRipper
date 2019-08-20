@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
+using uTinyRipper.AssetExporters.Classes;
 
 namespace uTinyRipper.Classes.TerrainDatas
 {
@@ -15,6 +16,13 @@ namespace uTinyRipper.Classes.TerrainDatas
 			return version.IsLess(2, 6);
 		}
 		/// <summary>
+		/// 2019.1.0b6 and greater
+		/// </summary>
+		public static bool IsReadDetailBillboardShader(Version version)
+		{
+			return version.IsGreaterEqual(2019, 1, 0, VersionType.Beta, 6);
+		}
+		/// <summary>
 		/// 2.6.0 and greater
 		/// </summary>
 		public static bool IsReadPreloadTextureAtlasData(Version version)
@@ -24,11 +32,10 @@ namespace uTinyRipper.Classes.TerrainDatas
 
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
+			if (version.IsGreaterEqual(2019, 1, 0, VersionType.Beta, 6))
 			{
-				return 2;
+				return 3;
 			}
-
 			if (version.IsGreaterEqual(3))
 			{
 				return 2;
@@ -38,11 +45,11 @@ namespace uTinyRipper.Classes.TerrainDatas
 
 		public void Read(AssetReader reader)
 		{
-			m_patches = reader.ReadArray<DetailPatch>();
-			m_detailPrototypes = reader.ReadArray<DetailPrototype>();
+			m_patches = reader.ReadAssetArray<DetailPatch>();
+			m_detailPrototypes = reader.ReadAssetArray<DetailPrototype>();
 			PatchCount = reader.ReadInt32();
 			PatchSamples = reader.ReadInt32();
-			m_randomRotations = reader.ReadArray<Vector3f>();
+			m_randomRotations = reader.ReadAssetArray<Vector3f>();
 			if (IsReadAtlasTexture(reader.Version))
 			{
 				AtlasTexture.Read(reader);
@@ -51,11 +58,17 @@ namespace uTinyRipper.Classes.TerrainDatas
 			WavingGrassStrength = reader.ReadSingle();
 			WavingGrassAmount = reader.ReadSingle();
 			WavingGrassSpeed = reader.ReadSingle();
-			m_treeInstances = reader.ReadArray<TreeInstance>();
-			m_treePrototypes = reader.ReadArray<TreePrototype>();
+			if (IsReadDetailBillboardShader(reader.Version))
+			{
+				DetailBillboardShader.Read(reader);
+				DetailMeshLitShader.Read(reader);
+				DetailMeshGrassShader.Read(reader);
+			}
+			m_treeInstances = reader.ReadAssetArray<TreeInstance>();
+			m_treePrototypes = reader.ReadAssetArray<TreePrototype>();
 			if (IsReadPreloadTextureAtlasData(reader.Version))
 			{
-				m_preloadTextureAtlasData = reader.ReadArray<PPtr<Texture2D>>();
+				m_preloadTextureAtlasData = reader.ReadAssetArray<PPtr<Texture2D>>();
 			}
 		}
 
@@ -91,20 +104,57 @@ namespace uTinyRipper.Classes.TerrainDatas
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("m_Patches", Patches.ExportYAML(container));
-			node.Add("m_DetailPrototypes", DetailPrototypes.ExportYAML(container));
-			node.Add("m_PatchCount", PatchCount);
-			node.Add("m_PatchSamples", PatchSamples);
-			node.Add("m_RandomRotations", RandomRotations.ExportYAML(container));
-			node.Add("WavingGrassTint", WavingGrassTint.ExportYAML(container));
-			node.Add("m_WavingGrassStrength", WavingGrassStrength);
-			node.Add("m_WavingGrassAmount", WavingGrassAmount);
-			node.Add("m_WavingGrassSpeed", WavingGrassSpeed);
-			node.Add("m_TreeInstances", TreeInstances.ExportYAML(container));
-			node.Add("m_TreePrototypes", TreePrototypes.ExportYAML(container));
-			node.Add("m_PreloadTextureAtlasData", PreloadTextureAtlasData.ExportYAML(container));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
+			node.Add(PatchesName, Patches.ExportYAML(container));
+			node.Add(DetailPrototypesName, DetailPrototypes.ExportYAML(container));
+			node.Add(PatchCountName, PatchCount);
+			node.Add(PatchSamplesName, PatchSamples);
+			node.Add(RandomRotationsName, RandomRotations.ExportYAML(container));
+			node.Add(WavingGrassTintName, WavingGrassTint.ExportYAML(container));
+			node.Add(WavingGrassStrengthName, WavingGrassStrength);
+			node.Add(WavingGrassAmountName, WavingGrassAmount);
+			node.Add(WavingGrassSpeedName, WavingGrassSpeed);
+			if (IsReadDetailBillboardShader(container.ExportVersion))
+			{
+				node.Add(DetailBillboardShaderName, ExportDetailBillboardShader(container));
+				node.Add(DetailMeshLitShaderName, ExportDetailMeshLitShader(container));
+				node.Add(DetailMeshGrassShaderName, ExportDetailMeshGrassShader(container));
+			}
+			node.Add(TreeInstancesName, TreeInstances.ExportYAML(container));
+			node.Add(TreePrototypesName, TreePrototypes.ExportYAML(container));
+			node.Add(PreloadTextureAtlasDataName, PreloadTextureAtlasData.ExportYAML(container));
 			return node;
+		}
+
+		private YAMLNode ExportDetailBillboardShader(IExportContainer container)
+		{
+			if (IsReadDetailBillboardShader(container.Version))
+			{
+				return DetailBillboardShader.ExportYAML(container);
+			}
+
+			EngineBuiltInAsset buildInAsset = EngineBuiltInAssets.GetShader(EngineBuiltInAssets.TerrainBillboardWavingDoublePass, container.ExportVersion);
+			return buildInAsset.ToExportPointer().ExportYAML(container);
+		}
+		private YAMLNode ExportDetailMeshLitShader(IExportContainer container)
+		{
+			if (IsReadDetailBillboardShader(container.Version))
+			{
+				return DetailMeshLitShader.ExportYAML(container);
+			}
+
+			EngineBuiltInAsset buildInAsset = EngineBuiltInAssets.GetShader(EngineBuiltInAssets.TerrainVertexLit, container.ExportVersion);
+			return buildInAsset.ToExportPointer().ExportYAML(container);
+		}
+		private YAMLNode ExportDetailMeshGrassShader(IExportContainer container)
+		{
+			if (IsReadDetailBillboardShader(container.Version))
+			{
+				return DetailMeshGrassShader.ExportYAML(container);
+			}
+
+			EngineBuiltInAsset buildInAsset = EngineBuiltInAssets.GetShader(EngineBuiltInAssets.TerrainWavingDoublePass, container.ExportVersion);
+			return buildInAsset.ToExportPointer().ExportYAML(container);
 		}
 
 		public IReadOnlyList<DetailPatch> Patches => m_patches;
@@ -119,8 +169,27 @@ namespace uTinyRipper.Classes.TerrainDatas
 		public IReadOnlyList<TreePrototype> TreePrototypes => m_treePrototypes;
 		public IReadOnlyList<PPtr<Texture2D>> PreloadTextureAtlasData => m_preloadTextureAtlasData;
 
+		public const string PatchesName = "m_Patches";
+		public const string DetailPrototypesName = "m_DetailPrototypes";
+		public const string PatchCountName = "m_PatchCount";
+		public const string PatchSamplesName = "m_PatchSamples";
+		public const string RandomRotationsName = "m_RandomRotations";
+		public const string WavingGrassTintName = "WavingGrassTint";
+		public const string WavingGrassStrengthName = "m_WavingGrassStrength";
+		public const string WavingGrassAmountName = "m_WavingGrassAmount";
+		public const string WavingGrassSpeedName = "m_WavingGrassSpeed";
+		public const string DetailBillboardShaderName = "m_DetailBillboardShader";
+		public const string DetailMeshLitShaderName = "m_DetailMeshLitShader";
+		public const string DetailMeshGrassShaderName = "m_DetailMeshGrassShader";
+		public const string TreeInstancesName = "m_TreeInstances";
+		public const string TreePrototypesName = "m_TreePrototypes";
+		public const string PreloadTextureAtlasDataName = "m_PreloadTextureAtlasData";
+
 		public PPtr<Texture2D> AtlasTexture;
 		public ColorRGBAf WavingGrassTint;
+		public PPtr<Shader> DetailBillboardShader;
+		public PPtr<Shader> DetailMeshLitShader;
+		public PPtr<Shader> DetailMeshGrassShader;
 
 		private DetailPatch[] m_patches;
 		private DetailPrototype[] m_detailPrototypes;

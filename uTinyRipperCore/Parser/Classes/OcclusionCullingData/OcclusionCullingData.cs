@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.OcclusionCullingDatas;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
@@ -55,11 +55,11 @@ namespace uTinyRipper.Classes
 			m_PVSData = reader.ReadByteArray();
 			reader.AlignStream(AlignType.Align4);
 
-			m_scenes = reader.ReadArray<OcclusionScene>();
+			m_scenes = reader.ReadAssetArray<OcclusionScene>();
 			if (IsReadStaticRenderers(reader.Flags))
 			{
-				m_staticRenderers = reader.ReadArray<SceneObjectIdentifier>();
-				m_portals = reader.ReadArray<SceneObjectIdentifier>();
+				m_staticRenderers = reader.ReadAssetArray<SceneObjectIdentifier>();
+				m_portals = reader.ReadAssetArray<SceneObjectIdentifier>();
 			}
 		}
 
@@ -98,24 +98,28 @@ namespace uTinyRipper.Classes
 				if (asset.ClassID == ClassIDType.OcclusionCullingSettings)
 				{
 					OcclusionCullingSettings cullingSetting = (OcclusionCullingSettings)asset;
-					if (Scenes.Any(t => t.Scene == cullingSetting.SceneGUID))
+					if (cullingSetting.OcclusionCullingData.IsAsset(cullingSetting.File, this))
 					{
 						cullingSettings.Add(cullingSetting);
 					}
 				}
 			}
 
-			int maxRenderer = Scenes.Max(j => j.IndexRenderers);
-			OcclusionScene rscene = Scenes.First(t => t.IndexRenderers == maxRenderer);
-			m_staticRenderers = new SceneObjectIdentifier[rscene.IndexRenderers + rscene.SizeRenderers];
-
-			int maxPortal = Scenes.Max(j => j.IndexPortals);
-			OcclusionScene pscene = Scenes.First(t => t.IndexPortals == maxPortal);
-			m_portals = new SceneObjectIdentifier[pscene.IndexPortals + pscene.SizePortals];
+			int maxRenderer = Scenes.Max(j => j.IndexRenderers + j.SizeRenderers);
+			m_staticRenderers = new SceneObjectIdentifier[maxRenderer];
+			int maxPortal = Scenes.Max(j => j.IndexPortals + j.SizePortals);
+			m_portals = new SceneObjectIdentifier[maxPortal];
 
 			foreach(OcclusionCullingSettings cullingSetting in cullingSettings)
 			{
-				OcclusionScene scene = Scenes.First(t => t.Scene == cullingSetting.SceneGUID);
+				int sceneIndex = Scenes.IndexOf(t => t.Scene == cullingSetting.SceneGUID);
+				if (sceneIndex == -1)
+				{
+					Logger.Log(LogType.Error, LogCategory.Export, $"Unable to find scene data with GUID {cullingSetting.SceneGUID} in {ValidName}");
+					continue;
+				}
+
+				OcclusionScene scene = Scenes[sceneIndex];
 				if (scene.SizeRenderers != cullingSetting.StaticRenderers.Count)
 				{
 					throw new Exception($"Scene renderer count {scene.SizeRenderers} doesn't match with given {cullingSetting.StaticRenderers.Count}");
@@ -152,7 +156,7 @@ namespace uTinyRipper.Classes
 			return soId;
 		}
 
-		public override string ExportName => Path.Combine(AssetsKeyWord, OcclusionCullingSettings.SceneKeyWord, ClassID.ToString());
+		public override string ExportPath => Path.Combine(AssetsKeyword, OcclusionCullingSettings.SceneKeyword, ClassID.ToString());
 
 		public IReadOnlyList<byte> PVSData => m_PVSData;
 		public IReadOnlyList<OcclusionScene> Scenes => m_scenes;

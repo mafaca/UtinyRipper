@@ -1,13 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.AssetExporters.Classes;
 using uTinyRipper.Classes.Cameras;
 using uTinyRipper.Classes.GraphicsSettingss;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
+	/// <summary>
+	/// RenderManager previously
+	/// </summary>
 	public sealed class GraphicsSettings : GlobalGameManager
 	{
 		public GraphicsSettings(AssetInfo assetInfo):
@@ -334,12 +337,12 @@ namespace uTinyRipper.Classes
 
 			if(IsReadAlwaysIncludedShaders(reader.Version))
 			{
-				m_alwaysIncludedShaders = reader.ReadArray<PPtr<Shader>>();
+				m_alwaysIncludedShaders = reader.ReadAssetArray<PPtr<Shader>>();
 			}
 
 			if (IsReadPreloadedShaders(reader.Version))
 			{
-				m_preloadedShaders = reader.ReadArray<PPtr<ShaderVariantCollection>>();
+				m_preloadedShaders = reader.ReadAssetArray<PPtr<ShaderVariantCollection>>();
 			}
 			if (IsReadSpritesDefaultMaterial(reader.Version))
 			{
@@ -359,14 +362,14 @@ namespace uTinyRipper.Classes
 					if (IsReadPlatformSettingsTiers(reader.Version))
 					{
 						m_platformSettings = new PlatformShaderSettings[3];
-						m_platformSettings[0] = reader.Read<PlatformShaderSettings>();
-						m_platformSettings[1] = reader.Read<PlatformShaderSettings>();
-						m_platformSettings[2] = reader.Read<PlatformShaderSettings>();
+						m_platformSettings[0] = reader.ReadAsset<PlatformShaderSettings>();
+						m_platformSettings[1] = reader.ReadAsset<PlatformShaderSettings>();
+						m_platformSettings[2] = reader.ReadAsset<PlatformShaderSettings>();
 					}
 					else
 					{
 						m_platformSettings = new PlatformShaderSettings[1];
-						m_platformSettings[0] = reader.Read<PlatformShaderSettings>();
+						m_platformSettings[0] = reader.ReadAsset<PlatformShaderSettings>();
 					}
 				}
 				else
@@ -374,9 +377,9 @@ namespace uTinyRipper.Classes
 					if(IsReadStaticTierGraphicsSettings(reader.Version, reader.Flags))
 					{
 						m_tierGraphicSettings = new TierGraphicsSettings[3];
-						m_tierGraphicSettings[0] = reader.Read<TierGraphicsSettings>();
-						m_tierGraphicSettings[1] = reader.Read<TierGraphicsSettings>();
-						m_tierGraphicSettings[2] = reader.Read<TierGraphicsSettings>();
+						m_tierGraphicSettings[0] = reader.ReadAsset<TierGraphicsSettings>();
+						m_tierGraphicSettings[1] = reader.ReadAsset<TierGraphicsSettings>();
+						m_tierGraphicSettings[2] = reader.ReadAsset<TierGraphicsSettings>();
 					}
 				}
 			}
@@ -391,7 +394,7 @@ namespace uTinyRipper.Classes
 				}
 				if (IsReadTierSettings(reader.Version))
 				{
-					m_tierSettings = reader.ReadArray<TierSettings>();
+					m_tierSettings = reader.ReadAssetArray<TierSettings>();
 				}
 
 				if (IsReadLightmapStripping(reader.Version))
@@ -468,7 +471,7 @@ namespace uTinyRipper.Classes
 
 				if (IsReadAlbedoSwatchInfos(reader.Version))
 				{
-					m_albedoSwatchInfos = reader.ReadArray<AlbedoSwatchInfo>();
+					m_albedoSwatchInfos = reader.ReadAssetArray<AlbedoSwatchInfo>();
 				}
 			}
 			else
@@ -476,7 +479,7 @@ namespace uTinyRipper.Classes
 			{
 				if(IsReadShaderDefinesPerShaderCompiler(reader.Version))
 				{
-					m_shaderDefinesPerShaderCompiler = reader.ReadArray<PlatformShaderDefines>();
+					m_shaderDefinesPerShaderCompiler = reader.ReadAssetArray<PlatformShaderDefines>();
 				}
 			}
 
@@ -646,12 +649,12 @@ namespace uTinyRipper.Classes
 				}
 			}
 
-			ExportShaderPointer(container, node, shaderNames, "Legacy Shaders/Diffuse");
-			ExportShaderPointer(container, node, shaderNames, "Hidden/CubeBlur");
-			ExportShaderPointer(container, node, shaderNames, "Hidden/CubeCopy");
-			ExportShaderPointer(container, node, shaderNames, "Hidden/CubeBlend");
-			ExportShaderPointer(container, node, shaderNames, "Sprites/Default");
-			ExportShaderPointer(container, node, shaderNames, "UI/Default");
+			ExportShaderPointer(container, node, shaderNames, EngineBuiltInAssets.LegacyDiffuse);
+			ExportShaderPointer(container, node, shaderNames, EngineBuiltInAssets.CubeBlur);
+			ExportShaderPointer(container, node, shaderNames, EngineBuiltInAssets.CubeCopy);
+			ExportShaderPointer(container, node, shaderNames, EngineBuiltInAssets.CubeBlend);
+			ExportShaderPointer(container, node, shaderNames, EngineBuiltInAssets.SpriteDefault);
+			ExportShaderPointer(container, node, shaderNames, EngineBuiltInAssets.UIDefault);
 			return node;
 		}
 		private IReadOnlyList<PPtr<ShaderVariantCollection>> GetPreloadedShaders(Version version)
@@ -859,9 +862,8 @@ namespace uTinyRipper.Classes
 		{
 			if (!shaderNames.Contains(name))
 			{
-				EngineBuiltInAsset buildInAsset = EngineBuiltInAssets.Shaders[name];
-				ExportPointer pointer = new ExportPointer(buildInAsset.ExportID, buildInAsset.GUID, AssetType.Internal);
-				node.Add(pointer.ExportYAML(container));
+				EngineBuiltInAsset buildInAsset = EngineBuiltInAssets.GetShader(name, container.ExportVersion);
+				node.Add(buildInAsset.ToExportPointer().ExportYAML(container));
 			}
 		}
 

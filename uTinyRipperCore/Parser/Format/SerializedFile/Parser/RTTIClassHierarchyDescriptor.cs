@@ -75,7 +75,7 @@ namespace uTinyRipper.SerializedFiles
 			{
 				SerializeTypeTrees = true;
 			}
-			m_types = reader.ReadArray(() => new RTTIBaseClassDescriptor(SerializeTypeTrees));
+			Types = reader.ReadSerializedArray(() => new RTTIBaseClassDescriptor(SerializeTypeTrees));
 
 			if (IsReadUnknown(reader.Generation))
 			{
@@ -88,16 +88,16 @@ namespace uTinyRipper.SerializedFiles
 		/// </summary>
 		public Platform Platform { get; private set; }
 		internal bool SerializeTypeTrees { get; private set; }
-		internal IReadOnlyList<RTTIBaseClassDescriptor> Types => m_types;
+		internal IReadOnlyList<RTTIBaseClassDescriptor> Types { get; private set; }
 		internal int Unknown { get; private set; }
 		
 		private string Name { get; }
+
+		public const int HierarchyMinSize = 4;
 
 		/// <summary>
 		/// Signature
 		/// </summary>
 		public Version Version;
-
-		private RTTIBaseClassDescriptor[] m_types;
 	}
 }

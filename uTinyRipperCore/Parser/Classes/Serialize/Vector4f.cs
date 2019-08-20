@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct Vector4f : IScriptStructure
+	public struct Vector4f : ISerializableStructure
 	{
 		public Vector4f(float value) :
 			this(value, value, value, value)
@@ -21,14 +22,9 @@ namespace uTinyRipper.Classes
 			W = w;
 		}
 
-		public Vector4f(Vector4f copy) :
-			this(copy.X, copy.Y, copy.Z, copy.W)
+		public ISerializableStructure CreateDuplicate()
 		{
-		}
-
-		public IScriptStructure CreateCopy()
-		{
-			return new Vector4f(this);
+			return new Vector4f();
 		}
 
 		public void Read(AssetReader reader)
@@ -82,10 +78,6 @@ namespace uTinyRipper.Classes
 		{
 			return $"[{X:0.00}, {Y:0.00}, {Z:0.00}, {W:0.00}]";
 		}
-
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.Vector4Name;
 
 		public float X { get; private set; }
 		public float Y { get; private set; }

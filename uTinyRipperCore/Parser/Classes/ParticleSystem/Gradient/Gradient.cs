@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes.ParticleSystems
@@ -9,7 +10,7 @@ namespace uTinyRipper.Classes.ParticleSystems
 	/// <summary>
 	/// GradientNEW previously
 	/// </summary>
-	public struct Gradient : IScriptStructure
+	public struct Gradient : ISerializableStructure
 	{
 		public Gradient(ColorRGBAf color1, ColorRGBAf color2):
 			this()
@@ -39,7 +40,7 @@ namespace uTinyRipper.Classes.ParticleSystems
 			return version.IsGreaterEqual(5, 5);
 		}
 
-		public IScriptStructure CreateCopy()
+		public ISerializableStructure CreateDuplicate()
 		{
 			return this;
 		}
@@ -230,10 +231,6 @@ namespace uTinyRipper.Classes.ParticleSystems
 			}
 			return 1;
 		}
-
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.GradientName;
 
 		public ushort Ctime0 { get; private set; }
 		public ushort Ctime1 { get; private set; }

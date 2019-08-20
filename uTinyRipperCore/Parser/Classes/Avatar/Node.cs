@@ -1,5 +1,5 @@
 ﻿using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes.Avatars
 {
@@ -17,6 +17,11 @@ namespace uTinyRipper.Classes.Avatars
 			node.Add("m_ParentId", ParentId);
 			node.Add("m_AxesId", AxesId);
 			return node;
+		}
+
+		public override string ToString()
+		{
+			return $"P:{ParentId} A:{AxesId}";
 		}
 
 		public int ParentId { get; private set; }

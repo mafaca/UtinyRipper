@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes.NavMeshDatas
@@ -21,10 +21,13 @@ namespace uTinyRipper.Classes.NavMeshDatas
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.Add("position", Position.ExportYAML(container));
-			node.Add("terrainData", TerrainData.ExportYAML(container));
+			node.Add(PositionName, Position.ExportYAML(container));
+			node.Add(TerrainDataName, TerrainData.ExportYAML(container));
 			return node;
 		}
+
+		public const string PositionName = "position";
+		public const string TerrainDataName = "terrainData";
 
 		public Vector3f Position;
 		public PPtr<Object> TerrainData;

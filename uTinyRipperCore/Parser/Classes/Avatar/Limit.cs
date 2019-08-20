@@ -1,5 +1,5 @@
 ﻿using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes.Avatars
 {
@@ -33,6 +33,11 @@ namespace uTinyRipper.Classes.Avatars
 			node.Add("m_Min", Min.ExportYAML3(container));
 			node.Add("m_Max", Max.ExportYAML3(container));
 			return node;
+		}
+
+		public override string ToString()
+		{
+			return $"{Min}-{Max}";
 		}
 
 		public Vector4f Min;

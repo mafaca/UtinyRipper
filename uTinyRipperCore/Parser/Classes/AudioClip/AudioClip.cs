@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.AudioClips;
 using uTinyRipper.Classes.Textures;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes
 {
@@ -23,12 +23,12 @@ namespace uTinyRipper.Classes
 			return version.IsGreaterEqual(5);
 		}
 		/// <summary>
-		/// Greater than 5.0.0b1
+		/// 5.0.0f1 and greater
 		/// </summary>
 		public static bool IsReadIsTrackerFormat(Version version)
 		{
-#warning unknown
-			return version.IsGreater(5, 0, 0, VersionType.Beta, 1);
+			// unknown version
+			return version.IsGreaterEqual(5, 0, 0, VersionType.Final);
 		}
 		/// <summary>
 		/// 2017.1 and greater
@@ -37,22 +37,29 @@ namespace uTinyRipper.Classes
 		{
 			return version.IsGreater(2017);
 		}
-		
+
 		/// <summary>
-		/// 5.0.0b1
+		/// 5.0.0b
 		/// </summary>
 		public static bool IsReadAudioClipFlags(Version version)
 		{
-#warning unknown
-			return version.IsEqual(5, 0, 0, VersionType.Beta, 1);
+			// unknown version
+			return version.IsEqual(5, 0, 0, VersionType.Beta);
 		}
 		/// <summary>
-		/// Greater than 5.0.0b1
+		/// 5.0.0f1 and greater
 		/// </summary>
 		public static bool IsReadCompressionFormat(Version version)
 		{
-#warning unknown
-			return version.IsGreater(5, 0, 0, VersionType.Beta, 1);
+			// unknown version
+			return version.IsGreaterEqual(5, 0, 0, VersionType.Final);
+		}
+		/// <summary>
+		/// Not Release
+		/// </summary>
+		public static bool IsReadEditorResource(TransferInstructionFlags flags)
+		{
+			return !flags.IsRelease();
 		}
 
 		/// <summary>
@@ -63,12 +70,12 @@ namespace uTinyRipper.Classes
 			return version.IsGreaterEqual(2) && version.IsLess(3);
 		}
 		/// <summary>
-		/// 2.6.0 to 5.0.0b1
+		/// 2.6.0 to 5.0.0b
 		/// </summary>
 		public static bool IsReadType(Version version)
 		{
-#warning unknown top version
-			return version.IsGreaterEqual(2, 6) && version.IsLessEqual(5, 0, 0, VersionType.Beta, 1);
+			// unknown top version
+			return version.IsGreaterEqual(2, 6) && version.IsLessEqual(5, 0, 0, VersionType.Beta);
 		}
 		/// <summary>
 		/// Less than 2.6.0
@@ -107,21 +114,21 @@ namespace uTinyRipper.Classes
 		}
 
 		/// <summary>
-		/// 5.0.0b1
+		/// 5.0.0b
 		/// </summary>
 		private static bool IsReadFSBResourceFirst(Version version)
 		{
-#warning unknown
-			return version.IsEqual(5, 0, 0, VersionType.Beta, 1);
+			// unknown version
+			return version.IsEqual(5, 0, 0, VersionType.Beta);
 		}
 
 		/// <summary>
-		/// Greater than 5.0.0b1
+		/// 5.0.0f1 and greater
 		/// </summary>
 		private static bool IsAlignTrackerFormat(Version version)
 		{
-#warning unknown
-			return version.IsGreater(5, 0, 0, VersionType.Beta, 1);
+			// unknown version
+			return version.IsGreaterEqual(5, 0, 0, VersionType.Final);
 		}
 
 		/// <summary>
@@ -169,14 +176,9 @@ namespace uTinyRipper.Classes
 
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
-			{
-				// topmost engine version doesn't conatain any serialized versions
-				return 1;
-			}
-			
 			if (version.IsGreaterEqual(5))
 			{
+				// old AudioClip asset format isn't compatible with new Engine version
 				return 1;
 			}
 			if (version.IsGreaterEqual(3, 5))
@@ -191,10 +193,51 @@ namespace uTinyRipper.Classes
 			return 2;
 		}
 
+		public bool CheckAssetIntegrity()
+		{
+			if (IsReadLoadType(File.Version))
+			{
+				return FSBResource.CheckIntegrity(File);
+			}
+			else if (IsReadStreamingInfo(File.Version))
+			{
+				if (LoadType == AudioClipLoadType.Streaming)
+				{
+					if (m_audioData == null)
+					{
+						return StreamingInfo.CheckIntegrity(File);
+					}
+				}
+			}
+			return true;
+		}
+
+		public IReadOnlyList<byte> GetAudioData()
+		{
+			if (IsReadLoadType(File.Version))
+			{
+				return FSBResource.GetContent(File) ?? new byte[0];
+			}
+			else
+			{
+				if (IsReadStreamingInfo(File.Version))
+				{
+					if (LoadType == AudioClipLoadType.Streaming)
+					{
+						if (m_audioData == null)
+						{
+							return StreamingInfo.GetContent(File) ?? new byte[0];
+						}
+					}
+				}
+				return m_audioData;
+			}
+		}
+
 		public override void Read(AssetReader reader)
 		{
 			base.Read(reader);
-			
+
 			if (IsReadLoadType(reader.Version))
 			{
 				LoadType = (AudioClipLoadType)reader.ReadInt32();
@@ -202,7 +245,7 @@ namespace uTinyRipper.Classes
 				Frequency = reader.ReadInt32();
 				BitsPerSample = reader.ReadInt32();
 				Length = reader.ReadSingle();
-				
+
 				if (IsReadIsTrackerFormat(reader.Version))
 				{
 					IsTrackerFormat = reader.ReadBoolean();
@@ -245,6 +288,17 @@ namespace uTinyRipper.Classes
 					CompressionFormat = (AudioCompressionFormat)reader.ReadInt32();
 				}
 				reader.AlignStream(AlignType.Align4);
+
+#if UNIVERSAL
+				if (IsReadEditorResource(reader.Flags))
+				{
+					EditorResource.Read(reader);
+					if (IsReadCompressionFormat(reader.Version))
+					{
+						EditorCompressionFormat = (AudioCompressionFormat)reader.ReadInt32();
+					}
+				}
+#endif
 			}
 			else
 			{
@@ -264,7 +318,7 @@ namespace uTinyRipper.Classes
 					Frequency = reader.ReadInt32();
 					Size = reader.ReadInt32();
 				}
-			
+
 				if (IsReadDecompressOnLoadSecond(reader.Version))
 				{
 					DecompressOnLoad = reader.ReadBoolean();
@@ -284,20 +338,20 @@ namespace uTinyRipper.Classes
 
 				if (IsStreamInt32(reader.Version))
 				{
-					Stream = reader.ReadInt32();
+					LoadType = (AudioClipLoadType)reader.ReadInt32();
 				}
 
 				if (IsReadStreamingInfo(reader.Version))
 				{
-					if (Stream == 2)
-					{
-						string resImageName = $"{File.Name}.resS";
-						StreamingInfo.Read(reader, resImageName);
-					}
-					else
+					bool isInnerData = LoadType == AudioClipLoadType.Streaming ? File.Collection.FindResourceFile(StreamingFileName) == null : true;
+					if (isInnerData)
 					{
 						m_audioData = reader.ReadByteArray();
 						reader.AlignStream(AlignType.Align4);
+					}
+					else
+					{
+						StreamingInfo.Read(reader, StreamingFileName);
 					}
 				}
 				else
@@ -318,7 +372,7 @@ namespace uTinyRipper.Classes
 				{
 					if (!IsStreamInt32(reader.Version))
 					{
-						Stream = reader.ReadBoolean() ? 1 : 0;
+						LoadType = reader.ReadBoolean() ? AudioClipLoadType.CompressedInMemory : AudioClipLoadType.DecompressOnLoad;
 					}
 				}
 			}
@@ -328,53 +382,28 @@ namespace uTinyRipper.Classes
 		{
 			if (IsReadLoadType(container.Version))
 			{
-				using (ResourcesFile res = File.Collection.FindResourcesFile(File, FSBResource.Source))
+				if (FSBResource.CheckIntegrity(File))
 				{
-					if (res == null)
-					{
-						Logger.Log(LogType.Warning, LogCategory.Export, $"Can't export '{ValidName}' because resources file '{FSBResource.Source}' hasn't been found");
-						return;
-					}
-
-					if (StreamedResource.IsReadSize(container.Version))
-					{
-						using (PartialStream resStream = new PartialStream(res.Stream, res.Offset, res.Size))
-						{
-							resStream.Position = FSBResource.Offset;
-							resStream.CopyStream(stream, FSBResource.Size);
-						}
-					}
-					else
-					{
-						// I think they read data by its type for this verison, so I can't even export raw data :/
-						Logger.Log(LogType.Warning, LogCategory.Export, $"Can't export '{ValidName}' because of unknown size");
-					}
+					byte[] data = FSBResource.GetContent(File);
+					stream.Write(data, 0, data.Length);
+				}
+				else
+				{
+					Logger.Log(LogType.Warning, LogCategory.Export, $"Can't export '{ValidName}' because data can't be read from resources file '{FSBResource.Source}'");
 				}
 			}
 			else
 			{
-				if (IsReadStreamingInfo(container.Version))
+				if (IsReadStreamingInfo(container.Version) && LoadType == AudioClipLoadType.Streaming && m_audioData == null)
 				{
-					if (Stream == 2)
+					if (StreamingInfo.CheckIntegrity(File))
 					{
-						using (ResourcesFile res = File.Collection.FindResourcesFile(File, StreamingInfo.Path))
-						{
-							if (res == null)
-							{
-								Logger.Log(LogType.Warning, LogCategory.Export, $"Can't export '{ValidName}' because resources file '{StreamingInfo.Path}' hasn't been found");
-								return;
-							}
-
-							using (PartialStream resStream = new PartialStream(res.Stream, res.Offset, res.Size))
-							{
-								resStream.Position = StreamingInfo.Offset;
-								resStream.CopyStream(stream, StreamingInfo.Size);
-							}
-						}
+						byte[] data = StreamingInfo.GetContent(File);
+						stream.Write(data, 0, data.Length);
 					}
 					else
 					{
-						stream.Write(m_audioData, 0, m_audioData.Length);
+						Logger.Log(LogType.Warning, LogCategory.Export, $"Can't export '{ValidName}' because resources file '{StreamingInfo.Path}' hasn't been found");
 					}
 				}
 				else
@@ -387,6 +416,24 @@ namespace uTinyRipper.Classes
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			throw new NotSupportedException();
+			/*YAMLMappingNode node = base.ExportYAMLRoot(container);
+			node.AddSerializedVersion(container.ExportVersion);
+			node.Add(LoadTypeName, (int)LoadType);
+			node.Add(ChannelsName, Channels);
+			node.Add(FrequencyName, Frequency);
+			node.Add(BitsPerSampleName, BitsPerSample);
+			node.Add(LengthName, Length);
+			node.Add(IsTrackerFormatName, IsTrackerFormat);
+			node.Add(AmbisonicName, Ambisonic);
+			node.Add(SubsoundIndexName, SubsoundIndex);
+			node.Add(PreloadAudioDataName, PreloadAudioData);
+			node.Add(LoadInBackgroundName, LoadInBackground);
+			node.Add(Legacy3DName, Legacy3D);
+			node.Add(ResourceName, FSBResource.ExportYAML(container));
+			node.Add(CompressionFormatName, (int)CompressionFormat);
+			node.Add(EditorResourceName, EditorResource.ExportYAML(container));
+			node.Add(EditorCompressionFormatName, (int)EditorCompressionFormat);
+			return node;*/
 		}
 
 		public override string ExportExtension
@@ -455,21 +502,27 @@ namespace uTinyRipper.Classes
 		{
 			get
 			{
-				if(IsReadLoadType(File.Version))
+				if (IsReadLoadType(File.Version))
 				{
 					return true;
 				}
-				if(IsReadStreamingInfo(File.Version))
+				if (IsReadStreamingInfo(File.Version))
 				{
-					if(Stream == 2)
+					if (LoadType == AudioClipLoadType.Streaming)
 					{
-						return true;
+						if (m_audioData == null)
+						{
+							return true;
+						}
 					}
 				}
 				return m_audioData.Length > 0;
 			}
 		}
 
+		/// <summary>
+		/// Stream previously
+		/// </summary>
 		public AudioClipLoadType LoadType { get; private set; }
 		public int Channels { get; private set; }
 		public int BitsPerSample { get; private set; }
@@ -480,6 +533,9 @@ namespace uTinyRipper.Classes
 		public bool PreloadAudioData { get; private set; }
 		public bool LoadInBackground { get; private set; }
 		public AudioCompressionFormat CompressionFormat { get; private set; }
+#if UNIVERSAL
+		public AudioCompressionFormat EditorCompressionFormat { get; private set; }
+#endif
 
 		public bool DecompressOnLoad { get; private set; }
 		public FMODSoundFormat Format { get; private set; }
@@ -496,9 +552,31 @@ namespace uTinyRipper.Classes
 		public bool Legacy3D { get; private set; }
 		public bool UseHardware { get; private set; }
 		public IReadOnlyList<byte> AudioData => m_audioData;
-		public int Stream { get; private set; }
+
+		private string StreamingFileName => File.Name + "." + StreamingFileExtension;
+
+		public const string StreamingFileExtension = "resS";
+
+		public const string LoadTypeName = "m_LoadType";
+		public const string ChannelsName = "m_Channels";
+		public const string FrequencyName = "m_Frequency";
+		public const string BitsPerSampleName = "m_BitsPerSample";
+		public const string LengthName = "m_Length";
+		public const string IsTrackerFormatName = "m_IsTrackerFormat";
+		public const string AmbisonicName = "m_Ambisonic";
+		public const string SubsoundIndexName = "m_SubsoundIndex";
+		public const string PreloadAudioDataName = "m_PreloadAudioData";
+		public const string LoadInBackgroundName = "m_LoadInBackground";
+		public const string Legacy3DName = "m_Legacy3D";
+		public const string ResourceName = "m_Resource";
+		public const string CompressionFormatName = "m_CompressionFormat";
+		public const string EditorResourceName = "m_EditorResource";
+		public const string EditorCompressionFormatName = "m_EditorCompressionFormat";
 
 		public StreamedResource FSBResource;
+#if UNIVERSAL
+		public StreamedResource EditorResource;
+#endif
 		public StreamingInfo StreamingInfo;
 
 		private byte[] m_audioData;

@@ -1,5 +1,5 @@
 ﻿using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes.RenderSettingss
 {
@@ -9,12 +9,12 @@ namespace uTinyRipper.Classes.RenderSettingss
 	public struct SphericalHarmonicsL2 : IAssetReadable, IYAMLExportable
 	{
 		/// <summary>
-		/// Not 5.0.0b1
+		/// Not 5.0.0b
 		/// </summary>
 		public static bool IsRead25(Version version)
 		{
-#warning unknown
-			return !version.IsEqual(5, 0, 0, VersionType.Beta, 1);
+			// unknown version
+			return !version.IsEqual(5, 0, 0, VersionType.Beta);
 		}
 
 		public void Read(AssetReader reader)

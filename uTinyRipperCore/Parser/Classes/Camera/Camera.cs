@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.Cameras;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
@@ -17,6 +17,34 @@ namespace uTinyRipper.Classes
 		/// 2018.2 and greater
 		/// </summary>
 		public static bool IsReadProjectionMatrixMode(Version version)
+		{
+			return version.IsGreaterEqual(2018, 2);
+		}
+		/// <summary>
+		/// 2019.1 and greater and Not Release
+		/// </summary>
+		public static bool IsReadFOVAxisMode(Version version, TransferInstructionFlags flags)
+		{
+			return !flags.IsRelease() && version.IsGreaterEqual(2019);
+		}
+		/// <summary>
+		/// 2018.2 and greater
+		/// </summary>
+		public static bool IsReadSensorSize(Version version)
+		{
+			return version.IsGreaterEqual(2018, 2);
+		}
+		/// <summary>
+		/// 2018.3 and greater
+		/// </summary>
+		public static bool IsReadGateFitMode(Version version)
+		{
+			return version.IsGreaterEqual(2018, 3);
+		}
+		/// <summary>
+		/// 2018.2 and greater
+		/// </summary>
+		public static bool IsReadFocalLength(Version version)
 		{
 			return version.IsGreaterEqual(2018, 2);
 		}
@@ -92,9 +120,23 @@ namespace uTinyRipper.Classes
 		}
 		
 		/// <summary>
+		/// 2019.1 and greater
+		/// </summary>
+		private static bool IsReadGateFitModeFirst(Version version)
+		{
+			return version.IsGreaterEqual(2019);
+		}
+		/// <summary>
+		/// 2018.2 and greater
+		/// </summary>
+		private static bool IsAlign1(Version version)
+		{
+			return version.IsGreaterEqual(2018, 2);
+		}
+		/// <summary>
 		/// 4.5.0 and greater
 		/// </summary>
-		private static bool IsAlign(Version version)
+		private static bool IsAlign2(Version version)
 		{
 			return version.IsGreaterEqual(4, 5);
 		}
@@ -115,13 +157,44 @@ namespace uTinyRipper.Classes
 
 			ClearFlags = reader.ReadUInt32();
 			BackGroundColor.Read(reader);
-			if(IsReadProjectionMatrixMode(reader.Version))
+			if (IsReadProjectionMatrixMode(reader.Version))
 			{
 				ProjectionMatrixMode = (ProjectionMatrixMode)reader.ReadInt32();
+			}
+			if (IsReadGateFitMode(reader.Version))
+			{
+				if (IsReadGateFitModeFirst(reader.Version))
+				{
+					GateFitMode = (GateFitMode)reader.ReadInt32();
+				}
+			}
+#if UNIVERSAL
+			if (IsReadFOVAxisMode(reader.Version, reader.Flags))
+			{
+				FOVAxisMode = (FieldOfViewAxis)reader.ReadInt32();
+			}
+#endif
+			if (IsAlign1(reader.Version))
+			{
+				reader.AlignStream(AlignType.Align4);
+			}
+			if (IsReadSensorSize(reader.Version))
+			{
 				SensorSize.Read(reader);
 				LensShift.Read(reader);
+			}
+			if (IsReadGateFitMode(reader.Version))
+			{
+				if (!IsReadGateFitModeFirst(reader.Version))
+				{
+					GateFitMode = (GateFitMode)reader.ReadInt32();
+				}
+			}
+			if (IsReadFocalLength(reader.Version))
+			{
 				FocalLength = reader.ReadSingle();
 			}
+
 			NormalizedViewPortRect.Read(reader);
 			NearClipPlane = reader.ReadSingle();
 			FarClipPlane = reader.ReadSingle();
@@ -165,7 +238,7 @@ namespace uTinyRipper.Classes
 			{
 				OcclusionCulling = reader.ReadBoolean();
 			}
-			if (IsAlign(reader.Version))
+			if (IsAlign2(reader.Version))
 			{
 				reader.AlignStream(AlignType.Align4);
 			}
@@ -194,32 +267,70 @@ namespace uTinyRipper.Classes
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
 			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("m_ClearFlags", ClearFlags);
-			node.Add("m_BackGroundColor", BackGroundColor.ExportYAML(container));
-			node.Add("m_NormalizedViewPortRect", NormalizedViewPortRect.ExportYAML(container));
-			node.Add("near clip plane", NearClipPlane);
-			node.Add("far clip plane", FarClipPlane);
-			node.Add("field of view", FieldOfView);
-			node.Add("orthographic", Orthographic);
-			node.Add("orthographic size", OrthographicSize);
-			node.Add("m_Depth", Depth);
-			node.Add("m_CullingMask", CullingMask.ExportYAML(container));
-			node.Add("m_RenderingPath", (int)RenderingPath);
-			node.Add("m_TargetTexture", TargetTexture.ExportYAML(container));
-			node.Add("m_TargetDisplay", TargetDisplay);
-			node.Add("m_TargetEye", (int)TargetEye);
-			node.Add("m_HDR", HDR);
-			node.Add("m_AllowMSAA", AllowMSAA);
-			node.Add("m_AllowDynamicResolution", AllowDynamicResolution);
-			node.Add("m_ForceIntoRT", ForceIntoRT);
-			node.Add("m_OcclusionCulling", OcclusionCulling);
-			node.Add("m_StereoConvergence", StereoConvergence);
-			node.Add("m_StereoSeparation", StereoSeparation);
+			node.Add(ClearFlagsName, ClearFlags);
+			node.Add(BackGroundColorName, BackGroundColor.ExportYAML(container));
+
+			if (IsReadProjectionMatrixMode(container.ExportVersion))
+			{
+				node.Add(ProjectionMatrixModeName, (int)ProjectionMatrixMode);
+			}
+			if (IsReadFOVAxisMode(container.ExportVersion, container.ExportFlags))
+			{
+				node.Add(FOVAxisModeName, (int)GetFOVAxisMode(container.Version, container.Flags));
+			}
+			if (IsReadSensorSize(container.ExportVersion))
+			{
+				node.Add(SensorSizeName, SensorSize.ExportYAML(container));
+				node.Add(LensShiftName, LensShift.ExportYAML(container));
+			}
+			if (IsReadGateFitMode(container.ExportVersion))
+			{
+				node.Add(GateFitModeName, (int)GateFitMode);
+			}
+			if (IsReadFocalLength(container.ExportVersion))
+			{
+				node.Add(FocalLengthName, FocalLength);
+			}
+
+			node.Add(NormalizedViewPortRectName, NormalizedViewPortRect.ExportYAML(container));
+			node.Add(NearClipPlaneName, NearClipPlane);
+			node.Add(FarClipPlaneName, FarClipPlane);
+			node.Add(FieldOfViewName, FieldOfView);
+			node.Add(OrthographicName, Orthographic);
+			node.Add(OrthographicSizeName, OrthographicSize);
+			node.Add(DepthName, Depth);
+			node.Add(CullingMaskName, CullingMask.ExportYAML(container));
+			node.Add(RenderingPathName, (int)RenderingPath);
+			node.Add(TargetTextureName, TargetTexture.ExportYAML(container));
+			node.Add(TargetDisplayName, TargetDisplay);
+			node.Add(TargetEyeName, (int)TargetEye);
+			node.Add(HDRName, HDR);
+			node.Add(AllowMSAAName, AllowMSAA);
+			node.Add(AllowDynamicResolutionName, AllowDynamicResolution);
+			node.Add(ForceIntoRTName, ForceIntoRT);
+			node.Add(OcclusionCullingName, OcclusionCulling);
+			node.Add(StereoConvergenceName, StereoConvergence);
+			node.Add(StereoSeparationName, StereoSeparation);
 			return node;
+		}
+
+		private FieldOfViewAxis GetFOVAxisMode(Version version, TransferInstructionFlags flags)
+		{
+#if UNIVERSAL
+			if (IsReadFOVAxisMode(version, flags))
+			{
+				return FOVAxisMode;
+			}
+#endif
+			return FieldOfViewAxis.Vertical;
 		}
 
 		public uint ClearFlags { get; private set; }
 		public ProjectionMatrixMode ProjectionMatrixMode { get; private set; }
+		public GateFitMode GateFitMode { get; private set; }
+#if UNIVERSAL
+		public FieldOfViewAxis FOVAxisMode { get; private set; }
+#endif
 		public float FocalLength { get; private set; }
 		public float NearClipPlane { get; private set; }
 		public float FarClipPlane { get; private set; }
@@ -241,6 +352,34 @@ namespace uTinyRipper.Classes
 		public float StereoConvergence { get; private set; }
 		public float StereoSeparation { get; private set; }
 		public bool StereoMirrorMode { get; private set; }
+
+		public const string ClearFlagsName = "m_ClearFlags";
+		public const string BackGroundColorName = "m_BackGroundColor";
+		public const string ProjectionMatrixModeName = "m_projectionMatrixMode";
+		public const string FOVAxisModeName = "m_FOVAxisMode";
+		public const string SensorSizeName = "m_SensorSize";
+		public const string LensShiftName = "m_LensShift";
+		public const string GateFitModeName = "m_GateFitMode";
+		public const string FocalLengthName = "m_FocalLength";
+		public const string NormalizedViewPortRectName = "m_NormalizedViewPortRect";
+		public const string NearClipPlaneName = "near clip plane";
+		public const string FarClipPlaneName = "far clip plane";
+		public const string FieldOfViewName = "field of view";
+		public const string OrthographicName = "orthographic";
+		public const string OrthographicSizeName = "orthographic size";
+		public const string DepthName = "m_Depth";
+		public const string CullingMaskName = "m_CullingMask";
+		public const string RenderingPathName = "m_RenderingPath";
+		public const string TargetTextureName = "m_TargetTexture";
+		public const string TargetDisplayName = "m_TargetDisplay";
+		public const string TargetEyeName = "m_TargetEye";
+		public const string HDRName = "m_HDR";
+		public const string AllowMSAAName = "m_AllowMSAA";
+		public const string AllowDynamicResolutionName = "m_AllowDynamicResolution";
+		public const string ForceIntoRTName = "m_ForceIntoRT";
+		public const string OcclusionCullingName = "m_OcclusionCulling";
+		public const string StereoConvergenceName = "m_StereoConvergence";
+		public const string StereoSeparationName = "m_StereoSeparation";
 
 		public ColorRGBAf BackGroundColor;
 		public Vector2f SensorSize;

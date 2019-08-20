@@ -1,9 +1,9 @@
-﻿namespace uTinyRipper.SerializedFiles
+namespace uTinyRipper.SerializedFiles
 {
 	/// <summary>
 	/// Contains information for a block of raw serialized object data.
 	/// </summary>
-	public class AssetEntry : ISerializedFileReadable
+	public class AssetEntry
 	{
 		/// <summary>
 		/// 5.0.0 and greater
@@ -17,7 +17,7 @@
 		/// </summary>
 		public static bool IsReadTypeIndex(FileGeneration generation)
 		{
-			return generation >= FileGeneration.FG_550_x;
+			return generation >= FileGeneration.FG_550_2018;
 		}
 		/// <summary>
 		/// 5.0.1 to 5.4.x
@@ -27,7 +27,7 @@
 			return generation >= FileGeneration.FG_501_54 &&  generation <= FileGeneration.FG_5unknown;
 		}
 
-		public void Read(SerializedFileReader reader)
+		public void Read(SerializedFileReader reader, RTTIClassHierarchyDescriptor heirarchy)
 		{
 			if (IsReadLongID(reader.Generation))
 			{
@@ -38,11 +38,15 @@
 			{
 				PathID = reader.ReadInt32();
 			}
-			DataOffset = reader.ReadInt32();
-			DataSize = reader.ReadInt32();
+			Offset = reader.ReadUInt32();
+			Size = reader.ReadInt32();
 			if (IsReadTypeIndex(reader.Generation))
 			{
-				TypeIndex = reader.ReadInt32();
+				int TypeIndex = reader.ReadInt32();
+				RTTIBaseClassDescriptor type = heirarchy.Types[TypeIndex];
+				TypeID = type.ClassID == ClassIDType.MonoBehaviour ? (-type.ScriptID - 1) : (int)type.ClassID;
+				ClassID = type.ClassID;
+				ScriptID = type.ScriptID;
 			}
 			else
 			{
@@ -52,7 +56,7 @@
 			}
 			if (IsReadUnknown(reader.Generation))
 			{
-				Unknown = reader.ReadBoolean();
+				IsStripped = reader.ReadBoolean();
 			}
 		}
 
@@ -65,11 +69,11 @@
 		/// Offset to the object data.
 		/// Add to SerializedFileHeader.dataOffset to get the absolute offset within the serialized file.
 		/// </summary>
-		public int DataOffset { get; private set; }
+		public uint Offset { get; private set; }
 		/// <summary>
 		/// Size of the object data.
 		/// </summary>
-		public int DataSize { get; private set; }
+		public int Size { get; private set; }
 		/// <summary>
 		/// Type ID of the object, which is mapped to RTTIBaseClassDescriptor.classID.
 		/// Equals to classID if the object is not a MonoBehaviour.
@@ -79,11 +83,7 @@
 		/// Class ID of the object.
 		/// </summary>
 		public ClassIDType ClassID { get; private set; }
-		/// <summary>
-		/// Index of RTTIBaseClassDescriptor
-		/// </summary>
-		public int TypeIndex { get; private set; }
 		public short ScriptID { get; private set; }
-		public bool Unknown { get; private set; }
+		public bool IsStripped { get; private set; }
 	}
 }

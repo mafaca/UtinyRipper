@@ -1,4 +1,6 @@
-﻿namespace uTinyRipper
+﻿using System;
+
+namespace uTinyRipper
 {
 	public static class StringExtensions
 	{

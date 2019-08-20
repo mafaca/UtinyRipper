@@ -1,13 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct Vector2f : IScriptStructure
+	public struct Vector2f : ISerializableStructure
 	{
 		public Vector2f(float value) :
 			this(value, value)
@@ -18,11 +20,6 @@ namespace uTinyRipper.Classes
 		{
 			X = x;
 			Y = y;
-		}
-
-		public Vector2f(Vector2f copy):
-			this(copy.X, copy.Y)
-		{
 		}
 
 		public static Vector2f operator -(Vector2f left)
@@ -80,9 +77,9 @@ namespace uTinyRipper.Classes
 			return (float)(360.0 * angle / (2.0 * Math.PI));
 		}
 
-		public IScriptStructure CreateCopy()
+		public ISerializableStructure CreateDuplicate()
 		{
-			return new Vector2f(this);
+			return new Vector2f();
 		}
 
 		public void Read(AssetReader reader)
@@ -101,8 +98,8 @@ namespace uTinyRipper.Classes
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
 			node.Style = MappingStyle.Flow;
-			node.Add("x", X);
-			node.Add("y", Y);
+			node.Add(XName, X);
+			node.Add(YName, Y);
 			return node;
 		}
 
@@ -150,16 +147,15 @@ namespace uTinyRipper.Classes
 
 		public override string ToString()
 		{
-			return $"[{X.ToString("0.00")}, {Y.ToString("0.00")}]";
+			return string.Format(CultureInfo.InvariantCulture, "[{0:0.00}, {1:0.00}]", X, Y);
 		}
 
 		public static Vector2f One { get; } = new Vector2f(1.0f, 1.0f);
 
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.Vector2Name;
-
 		public float X { get; private set; }
 		public float Y { get; private set; }
+
+		public const string XName = "x";
+		public const string YName = "y";
 	}
 }

@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
+using uTinyRipper.Classes.Objects;
 
 namespace uTinyRipper.Classes
 {
@@ -22,7 +23,7 @@ namespace uTinyRipper.Classes
 			}
 		}
 
-		protected Object(AssetInfo assetInfo, uint hideFlags):
+		protected Object(AssetInfo assetInfo, HideFlags hideFlags):
 			this(assetInfo)
 		{
 			ObjectHideFlags = hideFlags;
@@ -63,7 +64,7 @@ namespace uTinyRipper.Classes
 		{
 			if (IsReadHideFlag(reader.Version, reader.Flags))
 			{
-				ObjectHideFlags = reader.ReadUInt32();
+				ObjectHideFlags = (HideFlags)reader.ReadUInt32();
 			}
 #if UNIVERSAL
 			if (IsReadInstanceID(reader.Version, reader.Flags))
@@ -113,41 +114,43 @@ namespace uTinyRipper.Classes
 		protected virtual YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.Add("m_ObjectHideFlags", GetObjectHideFlags(container.Version, container.Flags, container.ExportFlags));
+			node.Add(ObjectHideFlagsName, (uint)GetObjectHideFlags(container.Version, container.Flags, container.ExportFlags));
 			return node;
 		}
 
-		private uint GetObjectHideFlags(Version version, TransferInstructionFlags flags, TransferInstructionFlags exportFlags)
+		private HideFlags GetObjectHideFlags(Version version, TransferInstructionFlags flags, TransferInstructionFlags exportFlags)
 		{
-			if(IsReadHideFlag(version, flags))
+			if (IsReadHideFlag(version, flags))
 			{
 				return ObjectHideFlags;
 			}
-			if(ClassID == ClassIDType.GameObject)
+			if (ClassID == ClassIDType.GameObject)
 			{
 				GameObject go = (GameObject)this;
 				int depth = go.GetRootDepth();
-				return depth > 1 ? 1u : 0u;
+				return depth > 1 ? HideFlags.HideInHierarchy : HideFlags.None;
 			}
-			return exportFlags.IsForPrefab() ? 1u : ObjectHideFlags;
+			return exportFlags.IsForPrefab() ? HideFlags.HideInHierarchy : ObjectHideFlags;
 		}
 
 		public ISerializedFile File => m_assetInfo.File;
 		public ClassIDType ClassID => m_assetInfo.ClassID;
 		public virtual bool IsValid => true;
-		public virtual string ExportName => Path.Combine(AssetsKeyWord, ClassID.ToString());
+		public virtual string ExportPath => Path.Combine(AssetsKeyword, ClassID.ToString());
 		public virtual string ExportExtension => AssetExtension;
 		public long PathID => m_assetInfo.PathID;
 		
 		public EngineGUID GUID => m_assetInfo.GUID;
 
-		public uint ObjectHideFlags { get; private set; }
+		public HideFlags ObjectHideFlags { get; private set; }
 #if UNIVERSAL
 		public int InstanceID { get; private set; }
 		public long LocalIdentfierInFile { get; private set; }
 #endif
 
-		public const string AssetsKeyWord = "Assets";
+		public const string ObjectHideFlagsName = "m_ObjectHideFlags";
+
+		public const string AssetsKeyword = "Assets";
 		protected const string AssetExtension = "asset";
 
 		private readonly AssetInfo m_assetInfo;

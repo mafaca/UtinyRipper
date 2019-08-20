@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes;
 
@@ -9,6 +10,13 @@ namespace uTinyRipper.SerializedFiles
 {
 	public class VirtualSerializedFile : ISerializedFile
 	{
+		public VirtualSerializedFile(ExportOptions options)
+		{
+			Version = options.Version;
+			Platform = options.Platform;
+			Flags = options.Flags;
+		}
+
 		public Object GetAsset(long pathID)
 		{
 			Object asset = FindAsset(pathID);
@@ -117,10 +125,10 @@ namespace uTinyRipper.SerializedFiles
 			return instance;
 		}
 
-		public string Name => throw new NotSupportedException();
-		public Platform Platform => throw new NotSupportedException();
-		public Version Version => throw new NotSupportedException();
-		public TransferInstructionFlags Flags => throw new NotSupportedException();
+		public string Name => nameof(VirtualSerializedFile);
+		public Platform Platform { get; }
+		public Version Version { get; }
+		public TransferInstructionFlags Flags { get; }
 
 		public bool IsScene => throw new NotSupportedException();
 

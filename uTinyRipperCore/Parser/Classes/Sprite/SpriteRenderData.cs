@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using uTinyRipper.Classes.Meshes;
 using uTinyRipper.Classes.Sprites.Utils;
@@ -15,6 +15,13 @@ namespace uTinyRipper.Classes.Sprites
 		{
 			return version.IsGreaterEqual(5, 2);
 		}
+		/// <summary>
+		/// 2019.1 and greater
+		/// </summary>
+		public static bool IsReadSecondaryTextures(Version version)
+		{
+			return version.IsGreaterEqual(2019);
+		}		
 		/// <summary>
 		/// Less than 5.6.0
 		/// </summary>
@@ -37,12 +44,39 @@ namespace uTinyRipper.Classes.Sprites
 			return version.IsEqual(2018, 1);
 		}
 		/// <summary>
-		/// 5.4.5p1 to 5.5.0 exclusive or 5.5.0p3 or 5.5.3 and greater
+		/// 5.x.x (mess) and greater
 		/// </summary>
 		public bool IsReadAtlasRectOffset(Version version)
 		{
-			return (version.IsGreaterEqual(5, 4, 5, VersionType.Patch, 1) && version.IsLess(5, 5)) ||
-				version.IsEqual(5, 5, 0, VersionType.Patch, 3) || version.IsGreaterEqual(5, 5, 3);
+			if (version.IsGreaterEqual(5, 4, 5, VersionType.Patch, 1))
+			{
+				if (version.IsGreaterEqual(5, 6, 0, VersionType.Beta, 10))
+				{
+					return true;
+				}
+				if (version.IsGreaterEqual(5, 5, 2, VersionType.Patch))
+				{
+					if (version.IsGreaterEqual(5, 6))
+					{
+						return false;
+					}
+					return true;
+				}
+				if (version.IsGreaterEqual(5, 5, 0, VersionType.Patch, 3))
+				{
+					if (version.IsGreaterEqual(5, 5, 1))
+					{
+						return false;
+					}
+					return true;
+				}
+				if (version.IsGreaterEqual(5, 5))
+				{
+					return false;
+				}
+				return true;
+			}
+			return false;
 		}
 		/// <summary>
 		/// 4.5.0 and greater
@@ -61,7 +95,7 @@ namespace uTinyRipper.Classes.Sprites
 		
 		public Vector2f[][] GenerateOutline(Version version)
 		{
-			if(IsReadVertices(version))
+			if (IsReadVertices(version))
 			{
 				Vector2f[][] outline = new Vector2f[1][];
 				outline[0] = new Vector2f[Vertices.Count];
@@ -90,16 +124,20 @@ namespace uTinyRipper.Classes.Sprites
 			{
 				AlphaTexture.Read(reader);
 			}
+			if (IsReadSecondaryTextures(reader.Version))
+			{
+				m_secondaryTextures = reader.ReadAssetArray<SecondarySpriteTexture>();
+			}
 
 			if (IsReadVertices(reader.Version))
 			{
-				m_vertices = reader.ReadArray<SpriteVertex>();
+				m_vertices = reader.ReadAssetArray<SpriteVertex>();
 				m_indices = reader.ReadUInt16Array();
 				reader.AlignStream(AlignType.Align4);
 			}
 			else
 			{
-				m_subMeshes = reader.ReadArray<SubMesh>();
+				m_subMeshes = reader.ReadAssetArray<SubMesh>();
 				m_indexBuffer = reader.ReadByteArray();
 				reader.AlignStream(AlignType.Align4);
 
@@ -107,25 +145,25 @@ namespace uTinyRipper.Classes.Sprites
 			}
 			if (IsReadBindpose(reader.Version))
 			{
-				m_bindpose = reader.ReadArray<Matrix4x4f>();
+				m_bindpose = reader.ReadAssetArray<Matrix4x4f>();
 			}
-			if(IsReadSourceSkin(reader.Version))
+			if (IsReadSourceSkin(reader.Version))
 			{
-				m_sourceSkin = reader.ReadArray<BoneWeights4>();
+				m_sourceSkin = reader.ReadAssetArray<BoneWeights4>();
 			}
 
 			TextureRect.Read(reader);
 			TextureRectOffset.Read(reader);
-			if(IsReadAtlasRectOffset(reader.Version))
+			if (IsReadAtlasRectOffset(reader.Version))
 			{
 				AtlasRectOffset.Read(reader);
 			}
 			SettingsRaw = reader.ReadUInt32();
-			if(IsReadUVTransform(reader.Version))
+			if (IsReadUVTransform(reader.Version))
 			{
 				UVTransform.Read(reader);
 			}
-			if(IsReadDownscaleMultiplier(reader.Version))
+			if (IsReadDownscaleMultiplier(reader.Version))
 			{
 				DownscaleMultiplier = reader.ReadSingle();
 			}
@@ -135,6 +173,17 @@ namespace uTinyRipper.Classes.Sprites
 		{
 			yield return Texture.FetchDependency(file, isLog, () => nameof(SpriteRenderData), "Texture");
 			yield return AlphaTexture.FetchDependency(file, isLog, () => nameof(SpriteRenderData), "AlphaTexture");
+
+			if (IsReadSecondaryTextures(file.Version))
+			{
+				foreach (SecondarySpriteTexture secondaryTexture in SecondaryTextures)
+				{
+					foreach (Object asset in secondaryTexture.FetchDependencies(file, isLog))
+					{
+						yield return asset;
+					}
+				}
+			}
 		}
 
 		private void VerticesToOutline(List<Vector2f[]> outlines, Vector3f[] vertices, SubMesh submesh)
@@ -155,12 +204,17 @@ namespace uTinyRipper.Classes.Sprites
 					}
 				}
 			}
-
 			MeshOutlineGenerator outlineGenerator = new MeshOutlineGenerator(vertices, triangles);
 			List<Vector2f[]> meshOutlines = outlineGenerator.GenerateOutlines();
 			outlines.AddRange(meshOutlines);
 		}
 
+		public bool IsPacked => (SettingsRaw & 1) != 0;
+		public SpritePackingMode PackingMode => (SpritePackingMode)((SettingsRaw >> 1) & 1);
+		public SpritePackingRotation PackingRotation => (SpritePackingRotation)((SettingsRaw >> 2) & 0xF);
+		public SpriteMeshType MeshType => (SpriteMeshType)((SettingsRaw >> 6) & 0x1);
+
+		public IReadOnlyList<SecondarySpriteTexture> SecondaryTextures => m_secondaryTextures;
 		public IReadOnlyList<SpriteVertex> Vertices => m_vertices;
 		public IReadOnlyList<ushort> Indices => m_indices;
 		public IReadOnlyList<SubMesh> SubMeshes => m_subMeshes;
@@ -178,6 +232,7 @@ namespace uTinyRipper.Classes.Sprites
 		public Vector2f AtlasRectOffset;
 		public Vector4f UVTransform;
 
+		private SecondarySpriteTexture[] m_secondaryTextures;
 		private SpriteVertex[] m_vertices;
 		private ushort[] m_indices;
 		private SubMesh[] m_subMeshes;

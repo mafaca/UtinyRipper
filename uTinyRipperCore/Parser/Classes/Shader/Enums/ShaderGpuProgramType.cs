@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace uTinyRipper.Classes.Shaders
 {
@@ -93,10 +93,28 @@ namespace uTinyRipper.Classes.Shaders
 			}
 		}
 
+		public static bool IsDX9(this ShaderGpuProgramType _this)
+		{
+			switch (_this)
+			{
+				case ShaderGpuProgramType.DX9PixelSM20:
+				case ShaderGpuProgramType.DX9PixelSM30:
+				case ShaderGpuProgramType.DX9VertexSM20:
+				case ShaderGpuProgramType.DX9VertexSM30:
+					return true;
+
+				default:
+					return false;
+			}
+		}
+
 		public static GPUPlatform ToGPUPlatform(this ShaderGpuProgramType _this, Platform platform)
 		{
 			switch(_this)
 			{
+				case ShaderGpuProgramType.Unknown:
+					return GPUPlatform.unknown;
+
 				case ShaderGpuProgramType.GLES:
 					return GPUPlatform.gles;
 
@@ -153,8 +171,8 @@ namespace uTinyRipper.Classes.Shaders
 							return GPUPlatform.xbox360;
 						case Platform.XboxOne:
 							return GPUPlatform.xboxone;
-#warning TODO:
-							//return GPUPlatform.xboxone_d3d12;
+						// TODO:
+						//return GPUPlatform.xboxone_d3d12;
 
 						case Platform.WiiU:
 							return GPUPlatform.wiiu;
@@ -168,8 +186,12 @@ namespace uTinyRipper.Classes.Shaders
 						case Platform.Flash:
 							return GPUPlatform.flash;
 
+						case Platform.NoTarget:
 						case Platform.StandaloneWinPlayer:
 						case Platform.StandaloneWin64Player:
+						case Platform.StandaloneLinux:
+						case Platform.StandaloneLinux64:
+						case Platform.StandaloneLinuxUniversal:
 						case Platform.Android:
 							return GPUPlatform.vulkan;
 
@@ -180,13 +202,123 @@ namespace uTinyRipper.Classes.Shaders
 							throw new NotSupportedException($"Unsupported console platform {platform}");
 					}
 
+				// TODO: unknown
 				case ShaderGpuProgramType.PSVertex:
 				case ShaderGpuProgramType.PSPixel:
-					return GPUPlatform.ps4;
+					{
+						if (platform == Platform.Switch)
+						{
+							return GPUPlatform.@switch;
+						}
+						return GPUPlatform.ps4;
+					}
 
 				default:
 					throw new NotSupportedException($"Unsupported gpu program type {_this}");
 			}
+		}
+
+		public static string ToShaderName(this ShaderGpuProgramType _this, Platform platform, ShaderType type)
+		{
+			switch (_this)
+			{
+				case ShaderGpuProgramType.Unknown:
+					return nameof(ShaderGpuProgramType.Unknown);
+
+				case ShaderGpuProgramType.GLES:
+					return "!!GLES";
+				case ShaderGpuProgramType.GLES3:
+				case ShaderGpuProgramType.GLES31:
+				case ShaderGpuProgramType.GLES31AEP:
+					return "!!GLES3";
+
+				case ShaderGpuProgramType.GLCore32:
+					return "!!GL3x";
+				case ShaderGpuProgramType.GLCore41:
+				case ShaderGpuProgramType.GLCore43:
+					return "!!GL4x";
+
+				case ShaderGpuProgramType.GLLegacy:
+					{
+						// for ver < 5.0
+						/*if (type == ShaderType.Vertex)
+						{
+							return "!!ARBvp1.0";
+						}
+						else if (type == ShaderType.Fragment)
+						{
+							return "!!ARBfp1.0";
+						}*/
+						// but since serialization work only for >= 5.4 always return
+						return "!!GLSL"; // v1.20
+					}
+
+				case ShaderGpuProgramType.DX9VertexSM20:
+					return "vs_2_0";
+				case ShaderGpuProgramType.DX9VertexSM30:
+					return "vs_3_0";
+				case ShaderGpuProgramType.DX9PixelSM20:
+					return "ps_2_0";
+				case ShaderGpuProgramType.DX9PixelSM30:
+					return "ps_3_0";
+
+				case ShaderGpuProgramType.DX10Level9Vertex:
+					return "vs_4_0_level_9_1";
+				case ShaderGpuProgramType.DX10Level9Pixel:
+					return "ps_4_0_level_9_1";
+
+				case ShaderGpuProgramType.DX11VertexSM40:
+					return "vs_4_0";
+				case ShaderGpuProgramType.DX11VertexSM50:
+					return "vs_5_0";
+				case ShaderGpuProgramType.DX11PixelSM40:
+					return "ps_4_0";
+				case ShaderGpuProgramType.DX11PixelSM50:
+					return "ps_5_0";
+				case ShaderGpuProgramType.DX11GeometrySM40:
+					return "gs_4_0";
+				case ShaderGpuProgramType.DX11GeometrySM50:
+					return "gs_5_0";
+				case ShaderGpuProgramType.DX11HullSM50:
+					return "hs_5_0";
+				case ShaderGpuProgramType.DX11DomainSM50:
+					return "ds_5_0";
+
+				case ShaderGpuProgramType.MetalVS:
+					return "metal_vs";
+				case ShaderGpuProgramType.MetalFS:
+					return "metal_fs";
+
+				case ShaderGpuProgramType.PSVertex:
+					return "pssl_vs";
+				case ShaderGpuProgramType.PSPixel:
+					return "pssl_ps";
+
+				case ShaderGpuProgramType.Console:
+					{
+						switch (platform)
+						{
+							case Platform.Flash:
+								{
+									if (type == ShaderType.Vertex)
+									{
+										return "agal_vs";
+									}
+									else if (type == ShaderType.Fragment)
+									{
+										return "agal_ps";
+									}
+								}
+								break;
+
+							default:
+								return ToGPUPlatform(_this, platform).ToString();
+						}
+					}
+					break;
+			}
+
+			throw new NotSupportedException($"Unsupported gpu program type {_this} [{platform}, {type}]");
 		}
 	}
 }

@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.AnimationClips;
 using uTinyRipper.Classes.Animations;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
@@ -55,11 +55,6 @@ namespace uTinyRipper.Classes
 
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
-			{
-				return 3;
-			}
-
 			if (version.IsGreaterEqual(3, 4))
 			{
 				return 3;
@@ -82,7 +77,7 @@ namespace uTinyRipper.Classes
 			}
 			else
 			{
-				m_animations = reader.ReadArray<PPtr<AnimationClip>>();
+				m_animations = reader.ReadAssetArray<PPtr<AnimationClip>>();
 			}
 			WrapMode = (WrapMode)reader.ReadInt32();
 			PlayAutomatically = reader.ReadBoolean();
@@ -147,7 +142,7 @@ namespace uTinyRipper.Classes
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
 			node.Add("m_Animation", DefaultAnimation.ExportYAML(container));
 			node.Add("m_Animations", Animations.ExportYAML(container));
 			node.Add("m_WrapMode", (int)WrapMode);

@@ -1,5 +1,5 @@
-﻿using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.AssetExporters;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes.Meshes
 {
@@ -27,21 +27,8 @@ namespace uTinyRipper.Classes.Meshes
 			return version.IsGreaterEqual(2017, 3);
 		}
 
-		/// <summary>
-		/// 4.0.0 and greater
-		/// </summary>
-		public static bool IsNewTopologyFormat(Version version)
-		{
-			return version.IsGreaterEqual(4);
-		}
-
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
-			{
-				return 2;
-			}
-
 			if (version.IsGreaterEqual(4))
 			{
 				return 2;
@@ -51,7 +38,7 @@ namespace uTinyRipper.Classes.Meshes
 
 		public MeshTopology GetTopology(Version version)
 		{
-			if (IsNewTopologyFormat(version))
+			if (GetSerializedVersion(version) >= 2)
 			{
 				return Topology;
 			}
@@ -65,17 +52,17 @@ namespace uTinyRipper.Classes.Meshes
 		{
 			FirstByte = (int)reader.ReadUInt32();
 			IndexCount = (int)reader.ReadUInt32();
-			Topology = (MeshTopology)reader.ReadUInt32();
+			Topology = (MeshTopology)reader.ReadInt32();
 
-			if(IsReadTriangleCount(reader.Version))
+			if (IsReadTriangleCount(reader.Version))
 			{
 				TriangleCount = (int)reader.ReadUInt32();
 			}
-			if(IsReadBaseVertex(reader.Version))
+			if (IsReadBaseVertex(reader.Version))
 			{
 				BaseVertex = reader.ReadUInt32();
 			}
-			if(IsReadVertex(reader.Version))
+			if (IsReadVertex(reader.Version))
 			{
 				FirstVertex = reader.ReadUInt32();
 				VertexCount = reader.ReadUInt32();
@@ -86,26 +73,35 @@ namespace uTinyRipper.Classes.Meshes
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("firstByte", FirstByte);
-			node.Add("indexCount", IndexCount);
-			node.Add("topology", (uint)GetTopology(container.Version));
-			node.Add("firstVertex", FirstVertex);
-			node.Add("vertexCount", VertexCount);
-			node.Add("localAABB", LocalAABB.ExportYAML(container));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
+			node.Add(FirstByteName, FirstByte);
+			node.Add(IndexCountName, IndexCount);
+			node.Add(TopologyName, (int)GetTopology(container.Version));
+			node.Add(BaseVertexName, BaseVertex);
+			node.Add(FirstVertexName, FirstVertex);
+			node.Add(VertexCountName, VertexCount);
+			node.Add(LocalAABBName, LocalAABB.ExportYAML(container));
 			return node;
 		}
 
 		public int FirstByte { get; private set; }
 		public int IndexCount { get; private set; }
 		/// <summary>
-		/// isTriStrip previously
+		/// IsTriStrip previously
 		/// </summary>
 		public MeshTopology Topology { get; private set; }
 		public int TriangleCount { get; private set; }
 		public uint BaseVertex { get; private set; }
 		public uint FirstVertex { get; private set; }
 		public uint VertexCount { get; private set; }
+
+		public const string FirstByteName = "firstByte";
+		public const string IndexCountName = "indexCount";
+		public const string TopologyName = "topology";
+		public const string BaseVertexName = "baseVertex";
+		public const string FirstVertexName = "firstVertex";
+		public const string VertexCountName = "vertexCount";
+		public const string LocalAABBName = "localAABB";
 
 		public AABB LocalAABB;
 	}

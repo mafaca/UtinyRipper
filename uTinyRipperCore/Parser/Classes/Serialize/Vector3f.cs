@@ -1,13 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct Vector3f : IScriptStructure
+	public struct Vector3f : ISerializableStructure
 	{
 		public Vector3f(float x, float y, float z)
 		{
@@ -16,14 +18,9 @@ namespace uTinyRipper.Classes
 			Z = z;
 		}
 
-		public Vector3f(Vector3f copy) :
-			this(copy.X, copy.Y, copy.Z)
+		public ISerializableStructure CreateDuplicate()
 		{
-		}
-
-		public IScriptStructure CreateCopy()
-		{
-			return new Vector3f(this);
+			return new Vector3f();
 		}
 
 		public void Read(AssetReader reader)
@@ -50,9 +47,9 @@ namespace uTinyRipper.Classes
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
 			node.Style = MappingStyle.Flow;
-			node.Add("x", X);
-			node.Add("y", Y);
-			node.Add("z", Z);
+			node.Add(XName, X);
+			node.Add(YName, Y);
+			node.Add(ZName, Z);
 			return node;
 		}
 
@@ -60,8 +57,8 @@ namespace uTinyRipper.Classes
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
 			node.Style = MappingStyle.Flow;
-			node.Add("x", X);
-			node.Add("y", Y);
+			node.Add(XName, X);
+			node.Add(YName, Y);
 			return node;
 		}
 
@@ -94,19 +91,19 @@ namespace uTinyRipper.Classes
 
 		public override string ToString()
 		{
-			return $"[{X:0.00}, {Y:0.00}, {Z:0.00}]";
+			return string.Format(CultureInfo.InvariantCulture, "[{0:0.00}, {1:0.00}, {2:0.00}]", X, Y, Z);
 		}
 
 		public static Vector3f One => new Vector3f(1.0f, 1.0f, 1.0f);
-
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.Vector3Name;
 
 		public static Vector3f DefaultWeight => new Vector3f(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f);
 
 		public float X { get; private set; }
 		public float Y { get; private set; }
 		public float Z { get; private set; }
+
+		public const string XName = "x";
+		public const string YName = "y";
+		public const string ZName = "z";
 	}
 }

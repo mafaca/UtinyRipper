@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using uTinyRipper.AssetExporters;
@@ -7,6 +7,7 @@ using uTinyRipper.Classes.Shaders;
 using uTinyRipper.SerializedFiles;
 using uTinyRipper.Classes.Shaders.Exporters;
 using System.Text;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes
 {
@@ -25,7 +26,7 @@ namespace uTinyRipper.Classes
 			return version.IsGreaterEqual(5, 5);
 		}
 		/// <summary>
-		/// 5.3.0 to 5.4.x
+		/// 5.3.0 to 5.4.0
 		/// </summary>
 		public static bool IsEncoded(Version version)
 		{
@@ -73,10 +74,31 @@ namespace uTinyRipper.Classes
 		{
 			return version.IsGreaterEqual(4);
 		}
+		/// <summary>
+		/// 3.4.0 to 5.5.0 exclusive and Not Release
+		/// </summary>
+		public static bool IsReadErrors(Version version, TransferInstructionFlags flags)
+		{
+			return !flags.IsRelease() && version.IsGreaterEqual(3, 4) && version.IsLess(5, 5);
+		}
+		/// <summary>
+		/// 4.2.0 and greater and Not Release
+		/// </summary>
+		public static bool IsReadDefaultTextures(Version version, TransferInstructionFlags flags)
+		{
+			return !flags.IsRelease() && version.IsGreaterEqual(4, 2);
+		}
+		/// <summary>
+		/// 4.5.0 and greater and Not Release and Not Buildin
+		/// </summary>
+		public static bool IsReadCompileInfo(Version version, TransferInstructionFlags flags)
+		{
+			return !flags.IsRelease() && !flags.IsBuiltinResources() && version.IsGreaterEqual(4, 5);
+		}
 
 		public override void Read(AssetReader reader)
 		{
-			if(IsSerialized(reader.Version))
+			if (IsSerialized(reader.Version))
 			{
 				ReadBase(reader);
 
@@ -100,13 +122,9 @@ namespace uTinyRipper.Classes
 
 						memStream.Position = offset;
 						byte[] decompressedBuffer = new byte[decompressedLength];
-						using (Lz4Stream lz4Stream = new Lz4Stream(memStream, (int)compressedLength))
+						using (Lz4DecodeStream lz4Stream = new Lz4DecodeStream(memStream, (int)compressedLength))
 						{
-							int read = lz4Stream.Read(decompressedBuffer, 0, decompressedBuffer.Length);
-							if (read != decompressedLength)
-							{
-								throw new Exception($"Can't properly decode shader blob. Read {read} but expected {decompressedLength}");
-							}
+							lz4Stream.ReadBuffer(decompressedBuffer, 0, decompressedBuffer.Length);
 						}
 
 						using (MemoryStream blobMem = new MemoryStream(decompressedBuffer))
@@ -125,27 +143,21 @@ namespace uTinyRipper.Classes
 			{
 				base.Read(reader);
 				
-				if(IsEncoded(reader.Version))
+				if (IsEncoded(reader.Version))
 				{
 					uint decompressedSize = reader.ReadUInt32();
 					int comressedSize = reader.ReadInt32();
-
-					byte[] subProgramBlob = new byte[comressedSize];
-					reader.Read(subProgramBlob, 0, comressedSize);
-					reader.AlignStream(AlignType.Align4);
-
 					if (comressedSize > 0 && decompressedSize > 0)
 					{
+						byte[] subProgramBlob = new byte[comressedSize];
+						reader.ReadBuffer(subProgramBlob, 0, comressedSize);
+
 						byte[] decompressedBuffer = new byte[decompressedSize];
 						using (MemoryStream memStream = new MemoryStream(subProgramBlob))
 						{
-							using (Lz4Stream lz4Stream = new Lz4Stream(memStream))
+							using (Lz4DecodeStream lz4Stream = new Lz4DecodeStream(memStream))
 							{
-								int read = lz4Stream.Read(decompressedBuffer, 0, decompressedBuffer.Length);
-								if (read != decompressedSize)
-								{
-									throw new Exception($"Can't properly decode sub porgram blob. Read {read} but expected {decompressedSize}");
-								}
+								lz4Stream.ReadBuffer(decompressedBuffer, 0, decompressedBuffer.Length);
 							}
 						}
 
@@ -157,6 +169,7 @@ namespace uTinyRipper.Classes
 							}
 						}
 					}
+					reader.AlignStream(AlignType.Align4);
 				}
 
 				if (IsReadFallback(reader.Version))
@@ -175,17 +188,34 @@ namespace uTinyRipper.Classes
 			
 			if (IsReadDependencies(reader.Version))
 			{
-				m_dependencies = reader.ReadArray<PPtr<Shader>>();
+				m_dependencies = reader.ReadAssetArray<PPtr<Shader>>();
 			}
-			if(IsReadNonModifiableTextures(reader.Version))
+			if (IsReadNonModifiableTextures(reader.Version))
 			{
-				m_nonModifiableTextures = reader.ReadArray<PPtr<Texture>>();
+				m_nonModifiableTextures = new Dictionary<string, PPtr<Texture>>();
+				m_nonModifiableTextures.Read(reader);
 			}
 			if (IsReadShaderIsBaked(reader.Version))
 			{
 				ShaderIsBaked = reader.ReadBoolean();
 				reader.AlignStream(AlignType.Align4);
 			}
+
+#if UNIVERSAL
+			if (IsReadErrors(reader.Version, reader.Flags))
+			{
+				m_errors = reader.ReadAssetArray<ShaderError>();
+			}
+			if (IsReadDefaultTextures(reader.Version, reader.Flags))
+			{
+				m_defaultTextures = new Dictionary<string, PPtr<Texture>>();
+				m_defaultTextures.Read(reader);
+			}
+			if (IsReadCompileInfo(reader.Version, reader.Flags))
+			{
+				CompileInfo.Read(reader);
+			}
+#endif
 		}
 
 		public override void ExportBinary(IExportContainer container, Stream stream)
@@ -193,7 +223,7 @@ namespace uTinyRipper.Classes
 			ExportBinary(container, stream, DefaultShaderExporterInstantiator);
 		}
 
-		public void ExportBinary(IExportContainer container, Stream stream, Func<Version, ShaderGpuProgramType, ShaderTextExporter> exporterInstantiator)
+		public void ExportBinary(IExportContainer container, Stream stream, Func<Version, GPUPlatform, ShaderTextExporter> exporterInstantiator)
 		{
 			if (IsSerialized(container.Version))
 			{
@@ -232,17 +262,30 @@ namespace uTinyRipper.Classes
 			}
 		}
 
-		public static ShaderTextExporter DefaultShaderExporterInstantiator(Version version, ShaderGpuProgramType programType)
+		public static ShaderTextExporter DefaultShaderExporterInstantiator(Version version, GPUPlatform graphicApi)
 		{
-			if(programType.IsGL())
+			switch (graphicApi)
 			{
-				return new ShaderGLESExporter();
+				case GPUPlatform.unknown:
+					return new ShaderTextExporter();
+
+				case GPUPlatform.openGL:
+				case GPUPlatform.gles:
+				case GPUPlatform.gles3:
+				case GPUPlatform.glcore:
+					return new ShaderGLESExporter();
+
+				case GPUPlatform.metal:
+					return new ShaderMetalExporter(version);
+
+				default:
+					return new ShaderUnknownExporter(graphicApi);
 			}
-			if(programType.IsMetal())
-			{
-				return new ShaderMetalExporter(version);
-			}
-			return new ShaderUnknownExporter(programType);
+		}
+
+		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
+		{
+			throw new NotSupportedException();
 		}
 
 		public override string ExportExtension => "shader";
@@ -252,18 +295,31 @@ namespace uTinyRipper.Classes
 		public IReadOnlyList<GPUPlatform> Platforms => m_platforms;
 		public IReadOnlyList<ShaderSubProgramBlob> SubProgramBlobs => m_subProgramBlobs;
 		public IReadOnlyList<PPtr<Shader>> Dependencies => m_dependencies;
-		public IReadOnlyList<PPtr<Texture>> NonModifiableTextures => m_nonModifiableTextures;
+		public IReadOnlyDictionary<string, PPtr<Texture>> NonModifiableTextures => m_nonModifiableTextures;
 		public bool ShaderIsBaked { get; private set; }
-		
+#if UNIVERSAL
+		public IReadOnlyList<ShaderError> Errors => m_errors;
+		public IReadOnlyDictionary<string, PPtr<Texture>> DefaultTextures => m_defaultTextures;
+#endif
+
+		public const string ErrorsName = "errors";
+
 		public SerializedShader ParsedForm;
 		public ShaderSubProgramBlob SubProgramBlob;
 		public PPtr<Shader> Fallback;
 		public UnityPropertySheet DefaultProperties;
 		public UnityPropertySheet StaticProperties;
-		
+#if UNIVERSAL
+		public ShaderCompilationInfo CompileInfo;
+#endif
+
 		private GPUPlatform[] m_platforms;
 		private ShaderSubProgramBlob[] m_subProgramBlobs;
 		private PPtr<Shader>[] m_dependencies;
-		private PPtr<Texture>[] m_nonModifiableTextures;
+		private Dictionary<string, PPtr<Texture>> m_nonModifiableTextures;
+#if UNIVERSAL
+		private ShaderError[] m_errors;
+		private Dictionary<string, PPtr<Texture>> m_defaultTextures;
+#endif
 	}
 }

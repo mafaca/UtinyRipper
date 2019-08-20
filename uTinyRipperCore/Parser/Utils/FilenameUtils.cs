@@ -1,15 +1,31 @@
-﻿using System;
+using System;
 using System.IO;
-using uTinyRipper.AssetExporters.Mono;
+using uTinyRipper.Assembly.Mono;
 
 namespace uTinyRipper
 {
 	public static class FilenameUtils
 	{
+		public static bool IsEngineResource(string fileName)
+		{
+#if UNIVERSAL
+			return IsDefaultResource(fileName) || IsEditorResource(fileName);
+#else
+			return IsDefaultResource(fileName);
+#endif
+		}
+
 		public static bool IsDefaultResource(string fileName)
 		{
 			return fileName == DefaultResourceName1 || fileName == DefaultResourceName2;
 		}
+
+#if UNIVERSAL
+		public static bool IsEditorResource(string fileName)
+		{
+			return fileName == EditorResourceName;
+		}
+#endif
 
 		public static bool IsBuiltinExtra(string fileName)
 		{
@@ -26,11 +42,11 @@ namespace uTinyRipper
 			name = name.ToLowerInvariant();
 			name = FixDependencyName(name);
 			name = FixResourcePath(name);
-			if(IsDefaultResource(name))
+			if (IsDefaultResource(name))
 			{
 				name = DefaultResourceName1;
 			}
-			else if(IsBuiltinExtra(name))
+			else if (IsBuiltinExtra(name))
 			{
 				name = BuiltinExtraName1;
 			}
@@ -66,9 +82,15 @@ namespace uTinyRipper
 			{
 				assembly = $"Assembly - {assembly}";
 			}
-			if(assembly.EndsWith(MonoManager.AssemblyExtension))
+			assembly = FixAssemblyEndian(assembly);
+			return assembly;
+		}
+
+		public static string FixAssemblyEndian(string assembly)
+		{
+			if (assembly.EndsWith(MonoManager.AssemblyExtension, StringComparison.Ordinal))
 			{
-				assembly = assembly.Substring(0, assembly.Length - MonoManager.AssemblyExtension.Length);
+				return assembly.Substring(0, assembly.Length - MonoManager.AssemblyExtension.Length);
 			}
 			return assembly;
 		}
@@ -81,7 +103,7 @@ namespace uTinyRipper
 
 		private static bool IsAssemblyIdentifier(string assembly)
 		{
-			switch(assembly)
+			switch (assembly)
 			{
 				case "Boo":
 				case "Boo - first pass":
@@ -100,6 +122,7 @@ namespace uTinyRipper
 		public const string ResourcesFolder = "resources/";
 		public const string DefaultResourceName1 = "unity default resources";
 		public const string DefaultResourceName2 = "unity_default_resources";
+		public const string EditorResourceName = "unity editor resources";
 		public const string BuiltinExtraName1 = "unity builtin extra";
 		public const string BuiltinExtraName2 = "unity_builtin_extra";
 		public const string EngineGeneratedF = "0000000000000000f000000000000000";

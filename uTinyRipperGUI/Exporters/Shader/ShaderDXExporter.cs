@@ -1,34 +1,43 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using DotNetDxc;
+using uTinyRipper.Classes.Shaders;
 using uTinyRipper.Classes.Shaders.Exporters;
+
+using Version = uTinyRipper.Version;
 
 namespace uTinyRipperGUI.Exporters
 {
 	public class ShaderDXExporter : ShaderTextExporter
 	{
-		static ShaderDXExporter()
+		public ShaderDXExporter(Version version, GPUPlatform graphicApi)
 		{
-			HlslDxcLib.DxcCreateInstanceFn = DefaultDxcLib.GetDxcCreateInstanceFn();
+			m_version = version;
+			m_graphicApi = graphicApi;
+		}
+
+		private static bool IsOffset(GPUPlatform graphicApi)
+		{
+			return graphicApi != GPUPlatform.d3d9;
+		}
+
+		private static bool IsOffset5(Version version)
+		{
+			return version.IsEqual(5, 3);
 		}
 
 		public override void Export(byte[] shaderData, TextWriter writer)
 		{
 			int offset = 0;
-			uint fourCC = BitConverter.ToUInt32(shaderData, 6);
-			if(fourCC == DXBCFourCC)
+			if (IsOffset(m_graphicApi))
 			{
-				offset = 6;
-			}
-			else
-			{
-#warning HACK: TEMP:
-				fourCC = BitConverter.ToUInt32(shaderData, 5);
-				if (fourCC == DXBCFourCC)
+				offset = IsOffset5(m_version) ? 5 : 6;
+				uint fourCC = BitConverter.ToUInt32(shaderData, offset);
+				if (fourCC != DXBCFourCC)
 				{
-					offset = 5;
+					throw new Exception("Magic number doesn't match");
 				}
 			}
 
@@ -53,23 +62,9 @@ namespace uTinyRipperGUI.Exporters
 			Marshal.FreeHGlobal(unmanagedPointer);
 		}
 
-		internal static string GetStringFromBlob(IDxcLibrary library, IDxcBlob blob)
-		{
-			unsafe
-			{
-				blob = library.GetBlobAstUf16(blob);
-				return new string(blob.GetBufferPointer(), 0, (int)(blob.GetBufferSize() / 2) - 1);
-			}
-		}
-
 		private string GetStringFromBlob(IDxcBlob blob)
 		{
-			return GetStringFromBlob(Library, blob);
-		}
-
-		internal IDxcLibrary Library
-		{
-			get { return (library ?? (library = HlslDxcLib.CreateDxcLibrary())); }
+			return Marshal.PtrToStringAnsi(blob.GetBufferPointer());
 		}
 
 		/// <summary>
@@ -77,6 +72,7 @@ namespace uTinyRipperGUI.Exporters
 		/// </summary>
 		private const uint DXBCFourCC = 0x43425844;
 
-		private IDxcLibrary library;
+		private readonly Version m_version;
+		private readonly GPUPlatform m_graphicApi;
 	}
 }

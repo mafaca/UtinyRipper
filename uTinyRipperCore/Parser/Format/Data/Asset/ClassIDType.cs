@@ -1,5 +1,6 @@
-﻿namespace uTinyRipper
+namespace uTinyRipper
 {
+	// Since some output is based on string representation renamed values has negative index
 	public enum ClassIDType
 	{
 		Object							= 0,
@@ -30,13 +31,10 @@
 		ParticleRenderer				= 26,
 		Texture							= 27,
 		Texture2D						= 28,
-		/// <summary>
-		/// SceneSettings/Scene previously
-		/// </summary>
+		Scene							= -29,
+		SceneSettings					= -29,
 		OcclusionCullingSettings		= 29,
-		/// <summary>
-		/// RenderManager previously
-		/// </summary>
+		RenderManager					= -30,
 		GraphicsSettings				= 30,
 		PipelineManager					= 31,
 		MeshFilter						= 33,
@@ -45,6 +43,7 @@
 		Skybox							= 45,
 		QualitySettings					= 47,
 		Shader							= 48,
+		Script							= -49,
 		TextAsset						= 49,
 		Rigidbody2D						= 50,
 		Physics2DManager				= 51,
@@ -60,9 +59,7 @@
 		PhysicsMaterial2D				= 62,
 		MeshCollider					= 64,
 		BoxCollider						= 65,
-		/// <summary>
-		/// SpriteCollider2D previously
-		/// </summary>
+		SpriteCollider2D				= -66,
 		CompositeCollider2D				= 66,
 		EdgeCollider2D					= 68,
 		CapsuleCollider2D				= 70,
@@ -105,8 +102,8 @@
 		LensFlare						= 123,
 		FlareLayer						= 124,
 		HaloLayer						= 125,
-		NavMeshLayers					= 126,
-		NavMeshAreas					= 126,
+		NavMeshLayers					= -126,
+		NavMeshAreas					= -126,
 		NavMeshProjectSettings			= 126,
 		HaloManager						= 127,
 		Font							= 128,
@@ -163,6 +160,7 @@
 		OffMeshLink						= 191,
 		OcclusionArea					= 192,
 		Tree							= 193,
+		NavMesh							= -194,
 		NavMeshObsolete					= 194,
 		NavMeshAgent					= 195,
 		NavMeshSettings					= 196,
@@ -174,7 +172,8 @@
 		BlendTree						= 206,
 		Motion							= 207,
 		NavMeshObstacle					= 208,
-		TerrainInstance					= 210,
+		SortingGroup					= 210,
+		//TerrainInstance				= 210,
 		SpriteRenderer					= 212,
 		Sprite							= 213,
 		CachedSpriteAtlas				= 214,
@@ -234,6 +233,7 @@
 		AvatarMask1						= 319,
 		VideoPlayer						= 328,
 		VideoClip						= 329,
+		ParticleSystemForceField		= 330,
 		OcclusionCullingData			= 363,
 
 		// =====================================
@@ -284,10 +284,9 @@
 		SpeedTreeImporter				= 1110,
 		AnimatorTransitionBase			= 1111,
 		SubstanceImporter				= 1112,
+		EnlightenSystemBuildParameters	= -1113,
 		LightmapParameters				= 1113,
-		/// <summary>
-		/// LightmapSnapshot previously
-		/// </summary>
+		LightmapSnapshot				= -1120,
 		LightingDataAsset				= 1120,
 		GISRaster						= 1121,
 		GISRasterImporter				= 1122,
@@ -301,6 +300,27 @@
 		/// </summary>
 		ActivationLogComponent			= 2000,
 		
+		// =====================================
+		// Custom section
+		// =====================================
+
+		@int							= 100000,
+		@bool							= 100001,
+		@float							= 100002,
+		MonoObject						= 100003,
+		Collision						= 100004,
+		Vector3f						= 100005,
+		RootMotionData					= 100006,
+		Collision2D						= 100007,
+		AudioMixerLiveUpdateFloat		= 100008,
+		AudioMixerLiveUpdateBool		= 100009,
+		Polygon2D						= 100010,
+		@void							= 100011,
+
+		// =====================================
+		// New editor section
+		// =====================================
+
 		TilemapCollider2D				= 19719996,
 		AssetImporterLog				= 41386430,
 		Grid							= 156049354,
@@ -335,6 +355,7 @@
 		RotationConstraint				= 1818360609,
 		ScaleConstraint					= 1818360610,
 		Tilemap							= 1839735485,
+		TerrainLayer					= 1953259897,
 		SpriteShapeRenderer				= 1971053207,
 		LocalizationAsset				= 2083778819,
 		ScriptedImporter				= 2089858483,

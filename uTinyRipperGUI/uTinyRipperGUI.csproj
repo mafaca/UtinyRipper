@@ -34,58 +34,86 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\Bins\$(Configuration)\$(Platform)\</OutputPath>
-    <BaseIntermediateOutputPath>..\Bins\obj\</BaseIntermediateOutputPath>
     <DefineConstants>TRACE;DEBUG;WIN64</DefineConstants>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.2</LangVersion>
+    <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <BaseIntermediateOutputPath>..\Bins\obj\</BaseIntermediateOutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\Bins\$(Configuration)\$(Platform)\</OutputPath>
-    <BaseIntermediateOutputPath>..\Bins\obj\</BaseIntermediateOutputPath>
     <DefineConstants>TRACE;WIN64</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
+    <BaseIntermediateOutputPath>..\Bins\obj\</BaseIntermediateOutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Virtual|x64' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\Bins\$(Configuration)\$(Platform)\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;WIN64;VIRTUAL</DefineConstants>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>7.2</LangVersion>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <BaseIntermediateOutputPath>..\Bins\obj\</BaseIntermediateOutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\Bins\$(Configuration)\$(Platform)\</OutputPath>
-    <BaseIntermediateOutputPath>..\Bins\obj\</BaseIntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>7.2</LangVersion>
+    <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <BaseIntermediateOutputPath>..\Bins\obj\</BaseIntermediateOutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>..\Bins\$(Configuration)\$(Platform)\</OutputPath>
     <BaseIntermediateOutputPath>..\Bins\obj\</BaseIntermediateOutputPath>
     <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>7.2</LangVersion>
+    <BaseIntermediateOutputPath>..\Bins\obj\</BaseIntermediateOutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationManifest>App.manifest</ApplicationManifest>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Virtual|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\Bins\$(Configuration)\$(Platform)\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;VIRTUAL</DefineConstants>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <BaseIntermediateOutputPath>..\Bins\obj\</BaseIntermediateOutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Resources\URIcon.ico</ApplicationIcon>
@@ -97,6 +125,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
+    <Reference Include="UIAutomationProvider" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -105,15 +134,60 @@
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
+    <Compile Include="Exporters\Audio\AudioConverter.cs" />
+    <Compile Include="Exporters\Shader\ShaderVulkanExporter.cs" />
+    <Compile Include="Exporters\Texture\TextureConverter.cs" />
+    <Compile Include="Exporters\Texture\Texture2DExtensions.cs" />
+    <Compile Include="Exporters\Texture\TextureFormatExtensions.cs" />
     <Compile Include="OutputLogger.cs" />
+    <Compile Include="ThirdParty\CSspv\Disassembler.cs" />
+    <Compile Include="ThirdParty\CSspv\EnumValuesExtensions.cs" />
+    <Compile Include="ThirdParty\CSspv\Instruction.cs" />
+    <Compile Include="ThirdParty\CSspv\Module.cs" />
+    <Compile Include="ThirdParty\CSspv\OperandType.cs" />
+    <Compile Include="ThirdParty\CSspv\ParsedInstruction.cs" />
+    <Compile Include="ThirdParty\CSspv\Reader.cs" />
+    <Compile Include="ThirdParty\CSspv\SpirV.Core.Grammar.cs" />
+    <Compile Include="ThirdParty\CSspv\SpirV.Meta.cs" />
+    <Compile Include="ThirdParty\CSspv\Types.cs" />
     <Compile Include="ThirdParty\D3DCompiler\D3DCompiler.cs" />
-    <Compile Include="ThirdParty\D3DCompiler\dia2.cs" />
     <Compile Include="ThirdParty\D3DCompiler\DotNetDxc.cs" />
-    <Compile Include="ThirdParty\D3DCompiler\HlslHost.cs" />
-    <Compile Include="ThirdParty\D3DCompiler\Tom.cs" />
     <Compile Include="ThirdParty\FMOD Studio API\fmod.cs" />
     <Compile Include="ThirdParty\FMOD Studio API\fmod_dsp.cs" />
     <Compile Include="ThirdParty\FMOD Studio API\fmod_errors.cs" />
+    <Compile Include="ThirdParty\Smolv\OpData.cs" />
+    <Compile Include="ThirdParty\Smolv\SmolvDecoder.cs" />
+    <Compile Include="ThirdParty\Smolv\SpvOp.cs" />
+    <Compile Include="ThirdParty\Texture containers\ContainerType.cs" />
+    <Compile Include="ThirdParty\Texture containers\DDS\DDPFFlags.cs" />
+    <Compile Include="ThirdParty\Texture containers\DDS\DDSCaps2Flags.cs" />
+    <Compile Include="ThirdParty\Texture containers\DDS\DDSCapsFlags.cs" />
+    <Compile Include="ThirdParty\Texture containers\DDS\DDSContainer.cs" />
+    <Compile Include="ThirdParty\Texture containers\DDS\DDSContainerParameters.cs" />
+    <Compile Include="Exporters\Texture\TextureContainer.cs" />
+    <Compile Include="ThirdParty\Texture converters\AstcDecoder.cs" />
+    <Compile Include="ThirdParty\Texture containers\DDS\DDSDFlags.cs" />
+    <Compile Include="ThirdParty\Texture containers\DDS\DDSFourCCType.cs" />
+    <Compile Include="ThirdParty\Texture containers\DDS\DDSPixelFormat.cs" />
+    <Compile Include="ThirdParty\Texture containers\DDS\DXGIFormat.cs" />
+    <Compile Include="ThirdParty\Texture containers\KTX\KTXBaseInternalFormat.cs" />
+    <Compile Include="ThirdParty\Texture containers\KTX\KTXContainer.cs" />
+    <Compile Include="ThirdParty\Texture containers\KTX\KTXContainerParameters.cs" />
+    <Compile Include="ThirdParty\Texture containers\KTX\KTXFormat.cs" />
+    <Compile Include="ThirdParty\Texture containers\KTX\KTXInternalFormat.cs" />
+    <Compile Include="ThirdParty\Texture containers\KTX\KTXType.cs" />
+    <Compile Include="ThirdParty\Texture containers\PVR\PVRChannelType.cs" />
+    <Compile Include="ThirdParty\Texture containers\PVR\PVRColourSpace.cs" />
+    <Compile Include="ThirdParty\Texture containers\PVR\PVRContainer.cs" />
+    <Compile Include="ThirdParty\Texture containers\PVR\PVRContainerParameters.cs" />
+    <Compile Include="ThirdParty\Texture containers\PVR\PVRFlag.cs" />
+    <Compile Include="ThirdParty\Texture containers\PVR\PVRPixelFormat.cs" />
+    <Compile Include="ThirdParty\Texture converters\DxtDecoder.cs" />
+    <Compile Include="ThirdParty\Texture converters\EtcDecoder.cs" />
+    <Compile Include="ThirdParty\Texture converters\PvrtcDecoder.cs" />
+    <Compile Include="ThirdParty\Texture converters\RgbConverter.cs" />
+    <Compile Include="ThirdParty\Texture converters\Yuy2Decoder.cs" />
+    <Compile Include="Utils\DirectBitmap.cs" />
     <Compile Include="Utils\PermissionValidator.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -153,9 +227,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="App.manifest">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -165,7 +236,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\UtinyRipperCore\uTinyRipperCore.csproj">
+    <ProjectReference Include="..\uTinyRipperCore\uTinyRipperCore.csproj">
       <Project>{ca9420f4-4b54-4727-91e6-cce20916d795}</Project>
       <Name>uTinyRipperCore</Name>
     </ProjectReference>
@@ -186,25 +257,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>crunchunity.dll</TargetPath>
     </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\x86\d3dcompiler_47_x86.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>d3dcompiler_47.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\x86\dxcompiler_x86.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>dxcompiler.dll</TargetPath>
-    </ContentWithTargetPath>
     <ContentWithTargetPath Include="Libraries\x86\fmod_x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>fmod.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\x86\PVRTexLib.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>PVRTexLib.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\x86\PVRTexLibWrapper_x86.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>PVRTexLibWrapper.dll</TargetPath>
     </ContentWithTargetPath>
     <ContentWithTargetPath Include="Libraries\x86\texgenpack_x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -228,25 +283,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>crunchunity.dll</TargetPath>
     </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\x64\d3dcompiler_47_x64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>d3dcompiler_47.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\x64\dxcompiler_x64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>dxcompiler.dll</TargetPath>
-    </ContentWithTargetPath>
     <ContentWithTargetPath Include="Libraries\x64\fmod_x64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>fmod.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\x64\PVRTexLib.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>PVRTexLib.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\x64\PVRTexLibWrapper_x64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>PVRTexLibWrapper.dll</TargetPath>
     </ContentWithTargetPath>
     <ContentWithTargetPath Include="Libraries\x64\texgenpack_x64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

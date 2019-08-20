@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace uTinyRipper.SerializedFiles
 {
@@ -16,6 +16,30 @@ namespace uTinyRipper.SerializedFiles
 			m_name = name;
 		}
 
+		public static bool IsSerializedFileHeader(EndianReader reader)
+		{
+			if (reader.BaseStream.Position + HeaderMinSize > reader.BaseStream.Length)
+			{
+				return false;
+			}
+			int metadataSize = reader.ReadInt32();
+			if (metadataSize < SerializedFileMetadata.MetadataMinSize)
+			{
+				return false;
+			}
+			uint fileSize = reader.ReadUInt32();
+			if (fileSize < HeaderMinSize + SerializedFileMetadata.MetadataMinSize)
+			{
+				return false;
+			}
+			int generation = reader.ReadInt32();
+			if (!Enum.IsDefined(typeof(FileGeneration), generation))
+			{
+				return false;
+			}
+			return true;
+		}
+
 		/// <summary>
 		/// 3.5.0 and greater
 		/// </summary>
@@ -31,18 +55,14 @@ namespace uTinyRipper.SerializedFiles
 			{
 				throw new Exception($"Invalid metadata size {MetadataSize} for asset file {m_name}");
 			}
-			FileSize = reader.ReadInt32();
-			if (FileSize <= 0)
-			{
-				throw new Exception($"Invalid data size {FileSize} for asset file {m_name}");
-			}
+			FileSize = reader.ReadUInt32();
 			Generation = (FileGeneration)reader.ReadInt32();
 			if (!Enum.IsDefined(typeof(FileGeneration), Generation))
 			{
 				throw new Exception($"Unsupported file generation {Generation} for asset file '{m_name}'");
 			}
 			DataOffset = reader.ReadUInt32();
-			if(IsReadEndian(Generation))
+			if (IsReadEndian(Generation))
 			{
 				SwapEndianess = reader.ReadBoolean();
 				reader.AlignStream(AlignType.Align4);
@@ -60,7 +80,7 @@ namespace uTinyRipper.SerializedFiles
 		/// <summary>
 		/// Size of the whole file
 		/// </summary>
-		public int FileSize { get; private set; }
+		public uint FileSize { get; private set; }
 		/// <summary>
 		/// File format version. The number is required for backward compatibility and is normally incremented after the file format has been changed in a major update
 		/// </summary>
@@ -73,6 +93,8 @@ namespace uTinyRipper.SerializedFiles
 		/// Presumably controls the byte order of the data structure. This field is normally set to 0, which may indicate a little endian byte order.
 		/// </summary>
 		public bool SwapEndianess { get; private set; }
+
+		public const int HeaderMinSize = 16;
 
 		private readonly string m_name;
 	}

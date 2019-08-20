@@ -1,10 +1,12 @@
-﻿using System;
 using System.IO;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes
 {
+	/// <summary>
+	/// Script previously
+	/// </summary>
 	public class TextAsset : NamedObject
 	{
 		public TextAsset(AssetInfo assetInfo):
@@ -27,7 +29,7 @@ namespace uTinyRipper.Classes
 			Script = reader.ReadByteArray();
 			reader.AlignStream(AlignType.Align4);
 
-			if(IsReadPath(reader.Version))
+			if (IsReadPath(reader.Version))
 			{
 				PathName = reader.ReadString();
 			}
@@ -46,14 +48,21 @@ namespace uTinyRipper.Classes
 			base.Read(reader);
 		}
 
-		protected sealed override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
+		protected YAMLMappingNode ExportBaseYAMLRoot(IExportContainer container)
 		{
-			throw new NotSupportedException();
+			return base.ExportYAMLRoot(container);
 		}
-		
-		public override string ExportExtension => "bytes";
 
-		public byte[] Script { get; private set; }
-		public string PathName { get; private set; } = string.Empty;
+		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
+		{
+			YAMLMappingNode node = base.ExportYAMLRoot(container);
+			node.Add(ScriptName, Script.ExportYAML());
+			return node;
+		}
+
+		public byte[] Script { get; protected set; }
+		public string PathName { get; protected set; } = string.Empty;
+
+		public const string ScriptName = "m_Script";
 	}
 }

@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes.LightProbess
 {
@@ -14,30 +14,32 @@ namespace uTinyRipper.Classes.LightProbess
 			return version.IsGreaterEqual(5);
 		}
 		/// <summary>
-		/// Greater than 5.0.0b1
+		/// 5.0.0f1 and greater
 		/// </summary>
 		public static bool IsReadNonTetrahedralizedProbeSetIndexMap(Version version)
 		{
-#warning unknown
-			return version.IsGreaterEqual(5, 0, 0, VersionType.Beta, 1);
+			// unknown version
+			return version.IsGreaterEqual(5, 0, 0, VersionType.Final);
 		}
 		
 		public void Read(AssetReader reader)
 		{
 			Tetrahedralization.Read(reader);
-			if(IsReadProbeSets(reader.Version))
+			if (IsReadProbeSets(reader.Version))
 			{
-				m_probeSets = reader.ReadArray<ProbeSetIndex>();
-				m_positions = reader.ReadArray<Vector3f>();
+				m_probeSets = reader.ReadAssetArray<ProbeSetIndex>();
+				m_positions = reader.ReadAssetArray<Vector3f>();
 			}
-			if(IsReadNonTetrahedralizedProbeSetIndexMap(reader.Version))
+			if (IsReadNonTetrahedralizedProbeSetIndexMap(reader.Version))
 			{
+				m_nonTetrahedralizedProbeSetIndexMap = new Dictionary<Hash128, int>();
 				m_nonTetrahedralizedProbeSetIndexMap.Read(reader);
 			}
 		}
 
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
+#warning TODO:
 			YAMLMappingNode node = new YAMLMappingNode();
 			node.Add("m_Tetrahedralization", Tetrahedralization.ExportYAML(container));
 			node.Add("m_ProbeSets", IsReadProbeSets(container.Version) ? ProbeSets.ExportYAML(container) : YAMLSequenceNode.Empty);

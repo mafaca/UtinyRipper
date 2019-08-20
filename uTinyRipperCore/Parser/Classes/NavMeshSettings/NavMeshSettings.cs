@@ -1,6 +1,8 @@
-﻿using uTinyRipper.AssetExporters;
+using System.Collections.Generic;
+using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.NavMeshDatas;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.SerializedFiles;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes
 {
@@ -18,6 +20,13 @@ namespace uTinyRipper.Classes
 		{
 			return !flags.IsRelease();
 		}
+		/// <summary>
+		/// 5.0.0 and greater
+		/// </summary>
+		public static bool IsReadNavMeshData(Version version)
+		{
+			return version.IsGreaterEqual(5);
+		}
 
 		public override void Read(AssetReader reader)
 		{
@@ -27,26 +36,36 @@ namespace uTinyRipper.Classes
 			{
 				BuildSettings.Read(reader);
 			}
-			NavMeshData.Read(reader);
+			m_navMeshData.Read(reader);
+		}
+
+		public override IEnumerable<Object> FetchDependencies(ISerializedFile file, bool isLog = false)
+		{
+			foreach (Object asset in base.FetchDependencies(file, isLog))
+			{
+				yield return asset;
+			}
+
+			yield return m_navMeshData.FetchDependency(file, isLog, ToLogString, NavMeshDataName);
 		}
 
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
-			node.Add("m_BuildSettings", GetExportNavMeshBuildSettings(container).ExportYAML(container));
-			node.Add("m_NavMeshData", NavMeshData.ExportYAML(container));
+			node.Add(BuildSettingsName, GetExportNavMeshBuildSettings(container).ExportYAML(container));
+			node.Add(NavMeshDataName, IsReadNavMeshData(container.Version) ? NavMeshData.ExportYAML(container) : NavMesh.ExportYAML(container));
 			return node;
 		}
 
 		private NavMeshBuildSettings GetExportNavMeshBuildSettings(IExportContainer container)
 		{
-			if(IsReadBuildSettings(container.Flags))
+			if (IsReadBuildSettings(container.Flags))
 			{
 				return BuildSettings;
 			}
 			else
 			{
-				NavMeshData data = NavMeshData.FindAsset(container);
+				NavMeshData data = IsReadNavMeshData(container.Version) ? NavMeshData.FindAsset(container) : null;
 				if (data == null)
 				{
 					return new NavMeshBuildSettings(true);
@@ -65,7 +84,15 @@ namespace uTinyRipper.Classes
 			}
 		}
 
+		public const string BuildSettingsName = "m_BuildSettings";
+		public const string NavMeshName = "m_NavMesh";
+		public const string NavMeshDataName = "m_NavMeshData";
+
+		public PPtr<NavMeshObsolete> NavMesh => m_navMeshData.CastTo<NavMeshObsolete>();
+		public PPtr<NavMeshData> NavMeshData => m_navMeshData.CastTo<NavMeshData>();
+
 		public NavMeshBuildSettings BuildSettings;
-		public PPtr<NavMeshData> NavMeshData;
+
+		private PPtr<NamedObject> m_navMeshData;
 	}
 }

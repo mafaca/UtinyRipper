@@ -1,10 +1,9 @@
-﻿using SevenZip;
+using SevenZip;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.GameObjects;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
@@ -16,9 +15,9 @@ namespace uTinyRipper.Classes
 		{
 		}
 
-		private static void CollectHierarchy(GameObject root, List<EditorExtension> heirarchy)
+		private static IEnumerable<EditorExtension> FetchHierarchy(GameObject root)
 		{
-			heirarchy.Add(root);
+			yield return root;
 
 			Transform transform = null;
 			foreach (ComponentPair cpair in root.Components)
@@ -29,7 +28,7 @@ namespace uTinyRipper.Classes
 					continue;
 				}
 
-				heirarchy.Add(component);
+				yield return component;
 				if (component.ClassID.IsTransform())
 				{
 					transform = (Transform)component;
@@ -38,9 +37,12 @@ namespace uTinyRipper.Classes
 
 			foreach (PPtr<Transform> pchild in transform.Children)
 			{
-				Transform child = pchild.GetAsset(root.File);
+				Transform child = pchild.GetAsset(transform.File);
 				GameObject childGO = child.GameObject.GetAsset(root.File);
-				CollectHierarchy(childGO, heirarchy);
+				foreach (EditorExtension childElement in FetchHierarchy(childGO))
+				{
+					yield return childElement;
+				}
 			}
 		}
 
@@ -130,7 +132,7 @@ namespace uTinyRipper.Classes
 
 			if(IsReadComponents(reader.Version, reader.Flags))
 			{
-				Components = reader.ReadArray<ComponentPair>();
+				Components = reader.ReadAssetArray<ComponentPair>();
 			}
 
 			if (IsReadIsActiveFirst(reader.Version))
@@ -201,6 +203,32 @@ namespace uTinyRipper.Classes
 			}
 		}
 
+		public T GetComponent<T>()
+			where T: Component
+		{
+			T component = FindComponent<T>();
+			if (component == null)
+			{
+				throw new Exception($"Component of type {nameof(T)} hasn't been found");
+			}
+			return component;
+		}
+
+		public T FindComponent<T>()
+			where T : Component
+		{
+			foreach (ComponentPair pair in Components)
+			{
+				// component could has not impelemented asset type
+				Component comp = pair.Component.FindAsset(File);
+				if (comp is T t)
+				{
+					return t;
+				}
+			}
+			return null;
+		}
+
 		public Transform GetTransform()
 		{
 			foreach (ComponentPair pair in Components)
@@ -254,12 +282,20 @@ namespace uTinyRipper.Classes
 			}
 			return depth;
 		}
-		
-		public IReadOnlyList<EditorExtension> CollectHierarchy()
+
+		public IEnumerable<EditorExtension> FetchHierarchy()
 		{
-			List<EditorExtension> heirarchy = new List<EditorExtension>();
-			CollectHierarchy(this, heirarchy);
-			return heirarchy;
+			foreach (EditorExtension element in FetchHierarchy(this))
+			{
+				yield return element;
+			}
+		}
+
+		public List<EditorExtension> CollectHierarchy()
+		{
+			List<EditorExtension> hierarchy = new List<EditorExtension>();
+			hierarchy.AddRange(FetchHierarchy(this));
+			return hierarchy;
 		}
 
 		public IReadOnlyDictionary<uint, string> BuildTOS()
@@ -284,14 +320,14 @@ namespace uTinyRipper.Classes
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
 			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("m_Component", GetComponents(container.Version, container.Flags).ExportYAML(container));
-			node.Add("m_Layer", Layer);
-			node.Add("m_Name", Name);
-			node.Add("m_TagString", GetTagString(container));
-			node.Add("m_Icon", GetIcon().ExportYAML(container));
-			node.Add("m_NavMeshLayer", GetNavMeshLayer());
-			node.Add("m_StaticEditorFlags", GetStaticEditorFlags());
-			node.Add("m_IsActive", GetIsActive(container.Version));
+			node.Add(ComponentName, GetComponents(container.Version, container.Flags).ExportYAML(container));
+			node.Add(LayerName, Layer);
+			node.Add(NameName, Name);
+			node.Add(TagStringName, GetTagString(container));
+			node.Add(IconName, GetIcon().ExportYAML(container));
+			node.Add(NavMeshLayerName, GetNavMeshLayer());
+			node.Add(StaticEditorFlagsName, GetStaticEditorFlags());
+			node.Add(IsActiveName, GetIsActive(container.Version));
 			return node;
 		}
 
@@ -348,11 +384,8 @@ namespace uTinyRipper.Classes
 			{
 				Transform childTransform = childPtr.GetAsset(File);
 				GameObject child = childTransform.GameObject.GetAsset(File);
-				string path = parentPath != string.Empty ? parentPath + "/" + child.Name : child.Name;
-				CRC crc = new CRC();
-				byte[] pathBytes = Encoding.UTF8.GetBytes(path);
-				crc.Update(pathBytes, 0, (uint)pathBytes.Length);
-				uint pathHash = crc.GetDigest();
+				string path = parentPath != string.Empty ? parentPath + Transform.PathSeparator + child.Name : child.Name;
+				uint pathHash = CRC.CalculateDigestUTF8(path);
 				tos[pathHash] = path;
 
 				BuildTOS(child, path, tos);
@@ -371,6 +404,15 @@ namespace uTinyRipper.Classes
 		public uint StaticEditorFlags { get; private set; }
 #endif
 		public bool IsActive { get; private set; }
+
+		public const string ComponentName = "m_Component";
+		public const string LayerName = "m_Layer";
+		public const string NameName = "m_Name";
+		public const string TagStringName = "m_TagString";
+		public const string IconName = "m_Icon";
+		public const string NavMeshLayerName = "m_NavMeshLayer";
+		public const string StaticEditorFlagsName = "m_StaticEditorFlags";
+		public const string IsActiveName = "m_IsActive";
 
 #if UNIVERSAL
 		public PPtr<Texture2D> Icon;

@@ -1,5 +1,5 @@
-﻿using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.AssetExporters;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes
 {
@@ -15,7 +15,7 @@ namespace uTinyRipper.Classes
 
 		public void Read(AssetReader reader)
 		{
-			if(IsVector3(reader.Version))
+			if (IsVector3(reader.Version))
 			{
 				T.Read3(reader);
 			}
@@ -37,10 +37,15 @@ namespace uTinyRipper.Classes
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.Add("t", IsVector3(container.Version) ? T.ExportYAML3(container) : T.ExportYAML(container));
+			node.Add("t", T.ExportYAML3(container));
 			node.Add("q", Q.ExportYAML(container));
-			node.Add("s", IsVector3(container.Version) ? S.ExportYAML3(container) : S.ExportYAML(container));
+			node.Add("s", S.ExportYAML3(container));
 			return node;
+		}
+
+		public override string ToString()
+		{
+			return $"T:{T} Q:{Q} S:{S}";
 		}
 
 		public Vector4f T;

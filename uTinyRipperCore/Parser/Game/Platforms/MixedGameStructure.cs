@@ -7,13 +7,12 @@ namespace uTinyRipper
 {
 	internal class MixedGameStructure : PlatformGameStructure
 	{
-		public MixedGameStructure(FileCollection collection, IEnumerable<string> pathes) :
-			base(collection)
+		public MixedGameStructure(IEnumerable<string> pathes)
 		{
 			Dictionary<string, string> files = new Dictionary<string, string>();
 			Dictionary<string, string> assemblies = new Dictionary<string, string>();
 			HashSet<string> dataPathes = new HashSet<string>();
-			foreach (string path in pathes)
+			foreach (string path in SelectUniquePathes(pathes))
 			{
 				if (FileMultiStream.Exists(path))
 				{
@@ -41,8 +40,12 @@ namespace uTinyRipper
 			DataPathes = dataPathes.ToArray();
 			Files = files;
 			Assemblies = assemblies;
-			SetScriptingBackend();
 			Name = Files.First().Key;
+		}
+
+		private IEnumerable<string> SelectUniquePathes(IEnumerable<string> pathes)
+		{
+			return pathes.Select(t => FileMultiStream.GetFilePath(t)).Distinct();
 		}
 
 		private void CollectFromDirectory(DirectoryInfo root, IDictionary<string, string> files, IDictionary<string, string> assemblies, ISet<string> dataPathes)

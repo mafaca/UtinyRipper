@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace uTinyRipper
 {
@@ -18,14 +15,21 @@ namespace uTinyRipper
 			return Directory.CreateDirectory(ToLongPath(path));
 		}
 
+		public static void CreateVirtualDirectory(string path)
+		{
+#if !VIRTUAL
+			CreateDirectory(path);
+#endif
+		}
+
 		public static void Delete(string path)
 		{
-			Directory.Delete(ToLongPath(path));
+			Directory.Delete(ToLongPath(path, true));
 		}
 
 		public static void Delete(string path, bool recursive)
 		{
-			Directory.Delete(ToLongPath(path), recursive);
+			Directory.Delete(ToLongPath(path, true), recursive);
 		}
 
 		public static string[] GetFiles(string path)
@@ -50,55 +54,22 @@ namespace uTinyRipper
 
 		public static string ToLongPath(string path)
 		{
+			return ToLongPath(path, false);
+		}
+
+		public static string ToLongPath(string path, bool force)
+		{
 			if (path.StartsWith(LongPathPrefix, StringComparison.Ordinal))
 			{
 				return path;
 			}
 
 			string fullPath = Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
-			if (fullPath.Length >= MaxDirectoryLength)
+			if (force || fullPath.Length >= MaxDirectoryLength)
 			{
-				return $@"{LongPathPrefix}{fullPath}";
+				return $"{LongPathPrefix}{fullPath}";
 			}
-			return fullPath;
-		}
-
-		public static string GetMaxIndexName(string dirPath, string fileName)
-		{
-			if (!Directory.Exists(dirPath))
-			{
-				return fileName;
-			}
-
-			if (fileName.Length > 245)
-			{
-				fileName = fileName.Substring(0, 245);
-			}
-			string escapeFileName = Regex.Escape(fileName);
-			Regex regex = new Regex($@"(?i)^{escapeFileName}(_[\d]+)?\.[^\.]+$");
-			List<string> files = new List<string>();
-			DirectoryInfo dirInfo = new DirectoryInfo(ToLongPath(dirPath));
-			foreach(FileInfo fileInfo in dirInfo.EnumerateFiles())
-			{
-				if(regex.IsMatch(fileInfo.Name))
-				{
-					files.Add(fileInfo.Name.ToLower());
-				}
-			}
-			if (files.Count == 0)
-			{
-				return fileName;
-			}
-
-			for (int i = 1; i < int.MaxValue; i++)
-			{
-				string newName = $"{fileName}_{i}.".ToLower();
-				if (files.All(t => !t.StartsWith(newName, StringComparison.Ordinal)))
-				{
-					return $"{fileName}_{i}";
-				}
-			}
-			throw new Exception($"Can't generate unique name for file {fileName} in directory {dirPath}");
+			return path;
 		}
 
 		public const string LongPathPrefix = @"\\?\";

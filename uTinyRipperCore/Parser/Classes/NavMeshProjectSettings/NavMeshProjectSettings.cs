@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.NavMeshDatas;
 using uTinyRipper.Classes.NavMeshProjectSettingss;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
 	/// <summary>
 	/// NavMeshAreas previously
-	/// NavMeshLayers event earlier
+	/// NavMeshLayers even earlier
 	/// </summary>
 	public sealed class NavMeshProjectSettings : GlobalGameManager
 	{
@@ -57,20 +57,10 @@ namespace uTinyRipper.Classes
 		/// </summary>
 		private static bool IsReadStaticAreas(Version version)
 		{
-			return ToSerializedVersion(version) < 2;
+			return GetSerializedVersion(version) < 2;
 		}
 
 		private static int GetSerializedVersion(Version version)
-		{
-			// NavMeshLayerData with individual names converted to dynamic array of NavMeshAreaData
-			if (Config.IsExportTopmostSerializedVersion)
-			{
-				return 2;
-			}
-			return ToSerializedVersion(version);
-		}
-
-		private static int ToSerializedVersion(Version version)
 		{
 			// NavMeshLayerData with individual names converted to dynamic array of NavMeshAreaData
 			if (version.IsGreaterEqual(5))
@@ -89,17 +79,17 @@ namespace uTinyRipper.Classes
 				m_areas = new NavMeshAreaData[32];
 				for (int i = 0; i < 32; i++)
 				{
-					m_areas[i] = reader.Read<NavMeshAreaData>();
+					m_areas[i] = reader.ReadAsset<NavMeshAreaData>();
 				}
 			}
 			else
 			{
-				m_areas = reader.ReadArray<NavMeshAreaData>();
+				m_areas = reader.ReadAssetArray<NavMeshAreaData>();
 			}
 			if (IsReadLastAgentTypeID(reader.Version))
 			{
 				LastAgentTypeID = reader.ReadInt32();
-				m_settings = reader.ReadArray<NavMeshBuildSettings>();
+				m_settings = reader.ReadAssetArray<NavMeshBuildSettings>();
 				m_settingNames = reader.ReadStringArray();
 			}
 		}
@@ -107,11 +97,11 @@ namespace uTinyRipper.Classes
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("areas", Areas.ExportYAML(container));
-			node.Add("m_LastAgentTypeID", GetLastAgentTypeID(container.Version));
-			node.Add("m_Settings", GetSettings(container.Version).ExportYAML(container));
-			node.Add("m_SettingNames", GetSettingNames(container.Version).ExportYAML());
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
+			node.Add(AreasName, Areas.ExportYAML(container));
+			node.Add(LastAgentTypeIDName, GetLastAgentTypeID(container.Version));
+			node.Add(SettingsName, GetSettings(container.Version).ExportYAML(container));
+			node.Add(SettingNamesName, GetSettingNames(container.Version).ExportYAML());
 			return node;
 		}
 
@@ -128,12 +118,17 @@ namespace uTinyRipper.Classes
 			return IsReadLastAgentTypeID(version) ? SettingNames : new [] { "Humanoid" };
 		}
 
-		public override string ExportName => nameof(ClassIDType.NavMeshAreas);
+		public override string ExportPath => nameof(ClassIDType.NavMeshAreas);
 
 		public IReadOnlyList<NavMeshAreaData> Areas => m_areas;
 		public int LastAgentTypeID { get; private set; }
 		public IReadOnlyList<NavMeshBuildSettings> Settings => m_settings;
 		public IReadOnlyList<string> SettingNames => m_settingNames;
+
+		public const string AreasName = "areas";
+		public const string LastAgentTypeIDName = "m_LastAgentTypeID";
+		public const string SettingsName = "m_Settings";
+		public const string SettingNamesName = "m_SettingNames";
 
 		private NavMeshAreaData[] m_areas;
 		private NavMeshBuildSettings[] m_settings;

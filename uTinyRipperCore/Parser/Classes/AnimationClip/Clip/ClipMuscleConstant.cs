@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes.AnimationClips
 {
-	public struct ClipMuscleConstant : IAssetReadable, IYAMLExportable
+	public class ClipMuscleConstant : IAssetReadable, IYAMLExportable
 	{
 		/// <summary>
 		/// 5.5.0 and greater
@@ -59,11 +59,10 @@ namespace uTinyRipper.Classes.AnimationClips
 
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
+			if (version.IsGreaterEqual(5, 6))
 			{
-				return 2;
+				return 3;
 			}
-
 			if (version.IsGreaterEqual(4, 3))
 			{
 				return 2;
@@ -88,7 +87,7 @@ namespace uTinyRipper.Classes.AnimationClips
 				MotionStopX.Read(reader);
 			}
 
-			if(IsVector3(reader.Version))
+			if (IsVector3(reader.Version))
 			{
 				AverageSpeed.Read3(reader);
 			}
@@ -111,9 +110,9 @@ namespace uTinyRipper.Classes.AnimationClips
 			{
 				m_additionalCurveIndexArray = reader.ReadInt32Array();
 			}
-			m_valueArrayDelta = reader.ReadArray<ValueDelta>();
+			m_valueArrayDelta = reader.ReadAssetArray<ValueDelta>();
 
-			if(IsReadValueArrayReferencePose(reader.Version))
+			if (IsReadValueArrayReferencePose(reader.Version))
 			{
 				m_valueArrayReferencePose = reader.ReadSingleArray();
 			}
@@ -128,7 +127,7 @@ namespace uTinyRipper.Classes.AnimationClips
 			LoopBlendPositionY = reader.ReadBoolean();
 			LoopBlendPositionXZ = reader.ReadBoolean();
 
-			if(IsReadStartAtOrigin(reader.Version))
+			if (IsReadStartAtOrigin(reader.Version))
 			{
 				StartAtOrigin = reader.ReadBoolean();
 			}
@@ -142,27 +141,7 @@ namespace uTinyRipper.Classes.AnimationClips
 		
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
-			YAMLMappingNode node = new YAMLMappingNode();
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("m_AdditiveReferencePoseClip", default(PPtr<AnimationClip>).ExportYAML(container));
-			node.Add("m_AdditiveReferencePoseTime", 0);
-			node.Add("m_StartTime", StartTime);
-			node.Add("m_StopTime", StopTime);
-			node.Add("m_OrientationOffsetY", OrientationOffsetY);
-			node.Add("m_Level", Level);
-			node.Add("m_CycleOffset", CycleOffset);
-			node.Add("m_HasAdditiveReferencePose", false);
-			node.Add("m_LoopTime", LoopTime);
-			node.Add("m_LoopBlend", LoopBlend);
-			node.Add("m_LoopBlendOrientation", LoopBlendOrientation);
-			node.Add("m_LoopBlendPositionY", LoopBlendPositionY);
-			node.Add("m_LoopBlendPositionXZ", LoopBlendPositionXZ);
-			node.Add("m_KeepOriginalOrientation", KeepOriginalOrientation);
-			node.Add("m_KeepOriginalPositionY", KeepOriginalPositionY);
-			node.Add("m_KeepOriginalPositionXZ", KeepOriginalPositionXZ);
-			node.Add("m_HeightFromFeet", HeightFromFeet);
-			node.Add("m_Mirror", 0);
-			return node;
+			throw new System.NotImplementedException();
 		}
 		
 		public float StartTime { get; private set; }
@@ -186,7 +165,26 @@ namespace uTinyRipper.Classes.AnimationClips
 		public bool KeepOriginalPositionY { get; private set; }
 		public bool KeepOriginalPositionXZ { get; private set; }
 		public bool HeightFromFeet { get; private set; }
-		
+
+		public const string AdditiveReferencePoseClipName = "m_AdditiveReferencePoseClip";
+		public const string AdditiveReferencePoseTimeName = "m_AdditiveReferencePoseTime";
+		public const string StartTimeName = "m_StartTime";
+		public const string StopTimeName = "m_StopTime";
+		public const string OrientationOffsetYName = "m_OrientationOffsetY";
+		public const string LevelName = "m_Level";
+		public const string CycleOffsetName = "m_CycleOffset";
+		public const string HasAdditiveReferencePoseName = "m_HasAdditiveReferencePose";
+		public const string LoopTimeName = "m_LoopTime";
+		public const string LoopBlendName = "m_LoopBlend";
+		public const string LoopBlendOrientationName = "m_LoopBlendOrientation";
+		public const string LoopBlendPositionYName = "m_LoopBlendPositionY";
+		public const string LoopBlendPositionXZName = "m_LoopBlendPositionXZ";
+		public const string KeepOriginalOrientationName = "m_KeepOriginalOrientation";
+		public const string KeepOriginalPositionYName = "m_KeepOriginalPositionY";
+		public const string KeepOriginalPositionXZName = "m_KeepOriginalPositionXZ";
+		public const string HeightFromFeetName = "m_HeightFromFeet";
+		public const string MirrorName = "m_Mirror";
+
 		public HumanPose DeltaPose;
 		public XForm StartX;
 		public XForm StopX;

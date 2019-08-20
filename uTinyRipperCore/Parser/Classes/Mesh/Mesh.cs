@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.IO;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.Meshes;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.Classes.Textures;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes
 {
@@ -15,7 +15,7 @@ namespace uTinyRipper.Classes
 			base(assetInfo)
 		{
 		}
-		
+
 		/// <summary>
 		/// Less than 2.0.0
 		/// </summary>
@@ -57,6 +57,13 @@ namespace uTinyRipper.Classes
 		public static bool IsReadBoneNameHashes(Version version)
 		{
 			return version.IsGreaterEqual(4, 3);
+		}
+		/// <summary>
+		/// 2019.1 and greater
+		/// </summary>
+		public static bool IsReadBonesAABB(Version version)
+		{
+			return version.IsGreaterEqual(2019);
 		}
 		/// <summary>
 		/// 2.6.0 and greater
@@ -164,11 +171,11 @@ namespace uTinyRipper.Classes
 			return version.IsLessEqual(3, 5, 0);
 		}
 		/// <summary>
-		/// Less than 3.5.0
+		/// Less than 3.5.0f1
 		/// </summary>
 		public static bool IsReadCollisionTriangles(Version version)
 		{
-			return version.IsLess(3, 5);
+			return version.IsLessEqual(3, 5, 0, VersionType.Beta);
 		}
 		/// <summary>
 		/// 2.5.0 and greater
@@ -190,6 +197,27 @@ namespace uTinyRipper.Classes
 		public static bool IsReadMeshMetrics(Version version)
 		{
 			return version.IsGreaterEqual(2018, 2);
+		}
+		/// <summary>
+		/// 3.5.0 and greater and Not Release
+		/// </summary>
+		public static bool IsReadMeshOptimized(Version version, TransferInstructionFlags flags)
+		{
+			return !flags.IsRelease() && version.IsGreaterEqual(3, 5);
+		}
+		/// <summary>
+		/// 2019.1 and greater and Not Release
+		/// </summary>
+		public static bool IsReadMeshOptimizationFlags(Version version, TransferInstructionFlags flags)
+		{
+			return !flags.IsRelease() && version.IsGreaterEqual(2019);
+		}
+		/// <summary>
+		/// 2018.3 and greater
+		/// </summary>
+		public static bool IsReadStreamData(Version version)
+		{
+			return version.IsGreaterEqual(2018, 3);
 		}
 
 		/// <summary>
@@ -221,7 +249,7 @@ namespace uTinyRipper.Classes
 			return version.IsGreaterEqual(3, 5, 1);
 		}
 		/// <summary>
-		/// 2017.3.1p1 and greater
+		/// Less than 2017.3.1p1
 		/// </summary>
 		private static bool IsReadIndexFormatCondition(Version version)
 		{
@@ -230,25 +258,22 @@ namespace uTinyRipper.Classes
 
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
+			// MeshOptimized has been extended to MeshOptimizationFlags
+			if (version.IsGreaterEqual(2019))
 			{
-#warning update version:
-				return 8;
+				return 10;
 			}
-
+			// Skin has been moved to VertexData
 			if (version.IsGreaterEqual(2018, 2))
 			{
 				return 9;
 			}
-#warning unknown
-			if (version.IsGreater(4, 0, 0, VersionType.Beta, 1))
+			if (version.IsGreaterEqual(4, 0, 0))
 			{
 				return 8;
 			}
-			if (version.IsGreaterEqual(4, 0, 0))
-			{
-				return 7;
-			}
+			// unknown (4.0.0b) version
+			// return 7;
 			if (version.IsGreaterEqual(3, 5))
 			{
 				return 6;
@@ -257,20 +282,22 @@ namespace uTinyRipper.Classes
 			{
 				return 5;
 			}
-#warning unknown
-			if (version.IsGreater(2, 6, 0, VersionType.Beta))
+			if (version.IsGreaterEqual(2, 6))
 			{
 				return 4;
 			}
-			if (version.IsGreaterEqual(2, 6))
-			{
-				return 3;
-			}
+			// unknown (2.6.0b) version
+			// return 3;
 			if (version.IsGreaterEqual(2))
 			{
 				return 2;
 			}
 			return 1;
+		}
+
+		public string FindBlendShapeNameByCRC(uint crc)
+		{
+			return Shapes.FindShapeNameByCRC(File.Version, crc);
 		}
 
 		public override void Read(AssetReader reader)
@@ -279,7 +306,7 @@ namespace uTinyRipper.Classes
 
 			if (IsReadLODData(reader.Version))
 			{
-				m_LODData = reader.ReadArray<LOD>();
+				m_LODData = reader.ReadAssetArray<LOD>();
 			}
 			if (IsReadUse16bitIndices(reader.Version))
 			{
@@ -295,32 +322,37 @@ namespace uTinyRipper.Classes
 			}
 			if (IsReadSubMeshes(reader.Version))
 			{
-				m_subMeshes = reader.ReadArray<SubMesh>();
+				m_subMeshes = reader.ReadAssetArray<SubMesh>();
 			}
-			
-			if(IsReadBlendShapes(reader.Version))
+
+			if (IsReadBlendShapes(reader.Version))
 			{
 				Shapes.Read(reader);
 			}
 			if (IsReadBindPosesFirst(reader.Version))
 			{
-				m_bindPoses = reader.ReadArray<Matrix4x4f>();
+				m_bindPoses = reader.ReadAssetArray<Matrix4x4f>();
 			}
 			if (IsReadBoneNameHashes(reader.Version))
 			{
 				m_boneNameHashes = reader.ReadUInt32Array();
 				RootBoneNameHash = reader.ReadUInt32();
 			}
+			if (IsReadBonesAABB(reader.Version))
+			{
+				m_bonesAABB = reader.ReadAssetArray<MinMaxAABB>();
+				VariableBoneCountWeights.Read(reader);
+			}
 
 			if (IsReadMeshCompression(reader.Version))
 			{
 				MeshCompression = (MeshCompression)reader.ReadByte();
 			}
-			if(IsReadStreamCompression(reader.Version))
+			if (IsReadStreamCompression(reader.Version))
 			{
 				StreamCompression = reader.ReadByte();
 			}
-			if(IsReadIsReadable(reader.Version))
+			if (IsReadIsReadable(reader.Version))
 			{
 				IsReadable = reader.ReadBoolean();
 				KeepVertices = reader.ReadBoolean();
@@ -335,14 +367,14 @@ namespace uTinyRipper.Classes
 			{
 				if (IsReadIndexFormatCondition(reader.Version))
 				{
-					if(MeshCompression == 0)
+					if (MeshCompression == 0)
 					{
-						IndexFormat = reader.ReadInt32();
+						IndexFormat = (IndexFormat)reader.ReadInt32();
 					}
 				}
 				else
 				{
-					IndexFormat = reader.ReadInt32();
+					IndexFormat = (IndexFormat)reader.ReadInt32();
 				}
 			}
 
@@ -354,34 +386,34 @@ namespace uTinyRipper.Classes
 					reader.AlignStream(AlignType.Align4);
 				}
 			}
-			
+
 			if (IsReadVertices(reader.Version))
 			{
 				if (IsReadVertexData(reader.Version))
 				{
-					if(MeshCompression != 0)
+					if (MeshCompression != 0)
 					{
-						m_vertices = reader.ReadArray<Vector3f>();
+						m_vertices = reader.ReadAssetArray<Vector3f>();
 					}
 				}
 				else
 				{
-					m_vertices = reader.ReadArray<Vector3f>();
+					m_vertices = reader.ReadAssetArray<Vector3f>();
 				}
 			}
 
-			if(IsReadSkin(reader.Version))
+			if (IsReadSkin(reader.Version))
 			{
-				m_skin = reader.ReadArray<BoneWeights4>();
+				m_skin = reader.ReadAssetArray<BoneWeights4>();
 			}
 			if (IsReadBindPoses(reader.Version))
 			{
 				if (!IsReadBindPosesFirst(reader.Version))
 				{
-					m_bindPoses = reader.ReadArray<Matrix4x4f>();
+					m_bindPoses = reader.ReadAssetArray<Matrix4x4f>();
 				}
 			}
-			
+
 			if (IsReadVertexData(reader.Version))
 			{
 				if (IsReadOnlyVertexData(reader.Version))
@@ -396,29 +428,29 @@ namespace uTinyRipper.Classes
 					}
 					else
 					{
-						m_UV = reader.ReadArray<Vector2f>();
-						m_UV1 = reader.ReadArray<Vector2f>();
-						m_tangents = reader.ReadArray<Vector4f>();
-						m_normals = reader.ReadArray<Vector3f>();
-						m_colors = reader.ReadArray<ColorRGBA32>();
+						m_UV = reader.ReadAssetArray<Vector2f>();
+						m_UV1 = reader.ReadAssetArray<Vector2f>();
+						m_tangents = reader.ReadAssetArray<Vector4f>();
+						m_normals = reader.ReadAssetArray<Vector3f>();
+						m_colors = reader.ReadAssetArray<ColorRGBA32>();
 					}
 				}
 			}
 			else
 			{
-				m_UV = reader.ReadArray<Vector2f>();
+				m_UV = reader.ReadAssetArray<Vector2f>();
 				if (IsReadUV1(reader.Version))
 				{
-					m_UV1 = reader.ReadArray<Vector2f>();
+					m_UV1 = reader.ReadAssetArray<Vector2f>();
 				}
 				if (IsReadTangentSpace(reader.Version))
 				{
-					m_tangentSpace = reader.ReadArray<Tangent>();
+					m_tangentSpace = reader.ReadAssetArray<Tangent>();
 				}
 				else
 				{
-					m_tangents = reader.ReadArray<Vector4f>();
-					m_normals = reader.ReadArray<Vector3f>();
+					m_tangents = reader.ReadAssetArray<Vector4f>();
+					m_normals = reader.ReadAssetArray<Vector3f>();
 				}
 			}
 			if (IsReadAlign(reader.Version))
@@ -436,7 +468,7 @@ namespace uTinyRipper.Classes
 			{
 				if (!IsReadVertexData(reader.Version))
 				{
-					m_colors = reader.ReadArray<ColorRGBA32>();
+					m_colors = reader.ReadAssetArray<ColorRGBA32>();
 				}
 			}
 			if (IsReadCollisionTriangles(reader.Version))
@@ -448,55 +480,75 @@ namespace uTinyRipper.Classes
 			{
 				MeshUsageFlags = reader.ReadInt32();
 			}
-			
-			if(IsReadCollision(reader.Version))
+
+			if (IsReadCollision(reader.Version))
 			{
 				CollisionData.Read(reader);
 			}
-			if(IsReadMeshMetrics(reader.Version))
+			if (IsReadMeshMetrics(reader.Version))
 			{
 				m_meshMetrics = new float[2];
 				m_meshMetrics[0] = reader.ReadSingle();
 				m_meshMetrics[1] = reader.ReadSingle();
 			}
+#if UNIVERSAL
+			if (IsReadMeshOptimized(reader.Version, reader.Flags))
+			{
+				MeshOptimizationFlags = reader.ReadBoolean() ? MeshOptimizationFlags.Everything : 0;
+			}
+			else if (IsReadMeshOptimizationFlags(reader.Version, reader.Flags))
+			{
+				MeshOptimizationFlags = (MeshOptimizationFlags)reader.ReadInt32();
+			}
+#endif
+			if (IsReadStreamData(reader.Version))
+			{
+				reader.AlignStream(AlignType.Align4);
+				StreamData.Read(reader);
+			}
 		}
-		
+
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("m_SubMeshes", GetSubMeshes(container.Version).ExportYAML(container));
-			node.Add("m_Shapes", Shapes.ExportYAML(container));
-			node.Add("m_BindPose", IsReadBindPoses(container.Version) ? BindPoses.ExportYAML(container) : YAMLSequenceNode.Empty);
-#warning TODO?
-			node.Add("m_BoneNames", YAMLSequenceNode.Empty);
-			node.Add("m_BoneNameHashes", IsReadBoneNameHashes(container.Version) ? BoneNameHashes.ExportYAML(false) : YAMLSequenceNode.Empty);
-#warning TODO?
-			node.Add("m_RootBoneName", YAMLScalarNode.Empty);
-			node.Add("m_RootBoneNameHash", RootBoneNameHash);
-			node.Add("m_MeshCompression", (byte)MeshCompression);
-			node.Add("m_IsReadable", IsReadable);
-			node.Add("m_KeepVertices", KeepVertices);
-			node.Add("m_KeepIndices", KeepIndices);
-			node.Add("m_IndexBuffer", GetIndexBuffer(container.Version, container.Platform).ExportYAML());
-			node.Add("m_Skin", GetSkin(container.Version).ExportYAML(container));
-			node.Add("m_VertexData", GetVertexData(container.Version).ExportYAML(container));
-			node.Add("m_CompressedMesh", CompressedMesh.ExportYAML(container));
-			node.Add("m_LocalAABB", LocalAABB.ExportYAML(container));
-			node.Add("m_MeshUsageFlags", MeshUsageFlags);
-			if (IsReadCollision(container.Version))
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
+			node.Add(SubMeshesName, GetSubMeshes(container.Version).ExportYAML(container));
+			node.Add(ShapesName, GetShapes(container.Version).ExportYAML(container));
+			node.Add(BindPoseName, GetBindPoses(container.Version).ExportYAML(container));
+			node.Add(BoneNameHashesName, GetBoneNameHashes(container.Version).ExportYAML(true));
+			node.Add(RootBoneNameHashName, RootBoneNameHash);
+			if (IsReadBonesAABB(container.ExportVersion))
 			{
-				node.Add("m_BakedConvexCollisionMesh", CollisionData.BakedConvexCollisionMesh.ExportYAML());
-				node.Add("m_BakedTriangleCollisionMesh", CollisionData.BakedTriangleCollisionMesh.ExportYAML());
+				node.Add(BonesAABBName, GetBonesAABB(container.Version).ExportYAML(container));
+				node.Add(VariableBoneCountWeightsName, GetVariableBoneCountWeights(container.Version).ExportYAML(container));
+			}
+			node.Add(MeshCompressionName, (byte)MeshCompression);
+			node.Add(IsReadableName, IsReadable);
+			node.Add(KeepVerticesName, KeepVertices);
+			node.Add(KeepIndicesName, KeepIndices);
+			node.Add(IndexFormatName, (int)IndexFormat);
+			node.Add(IndexBufferName, GetIndexBuffer(container.Version, container.Platform).ExportYAML());
+			node.Add(SkinName, GetSkin(container.Version).ExportYAML(container));
+			node.Add(VertexDataName, GetVertexData(container.Version).ExportYAML(container));
+			node.Add(CompressedMeshName, CompressedMesh.ExportYAML(container));
+			node.Add(LocalAABBName, LocalAABB.ExportYAML(container));
+			node.Add(MeshUsageFlagsName, MeshUsageFlags);
+			node.Add(BakedConvexCollisionMeshName, GetBakedConvexCollisionMesh(container.Version).ExportYAML());
+			node.Add(BakedTriangleCollisionMeshName, GetBakedTriangleCollisionMesh(container.Version).ExportYAML());
+			if (IsReadMeshOptimizationFlags(container.ExportVersion, container.ExportFlags))
+			{
+				node.Add(MeshOptimizationFlagsName, (int)GetMeshOptimizationFlags(container.Version, container.Flags));
 			}
 			else
 			{
-				node.Add("m_BakedConvexCollisionMesh", ArrayExtensions.EmptyBytes.ExportYAML());
-				node.Add("m_BakedTriangleCollisionMesh", ArrayExtensions.EmptyBytes.ExportYAML());
+				node.Add(MeshOptimizedName, GetMeshOptimized(container.Version, container.Flags));
 			}
-#warning ???
-			node.Add("m_MeshOptimized", 0);
-			
+			if (IsReadStreamData(container.ExportVersion))
+			{
+				StreamingInfo streamData = new StreamingInfo(true);
+				node.Add(StreamDataName, streamData.ExportYAML(container));
+			}
+
 			return node;
 		}
 
@@ -504,14 +556,33 @@ namespace uTinyRipper.Classes
 		{
 			return IsReadSubMeshes(version) ? SubMeshes : new SubMesh[0];
 		}
-
+		private BlendShapeData GetShapes(Version version)
+		{
+			return IsReadBlendShapes(version) ? Shapes : new BlendShapeData(true);
+		}
+		private IReadOnlyList<Matrix4x4f> GetBindPoses(Version version)
+		{
+			return IsReadBindPoses(version) ? BindPoses : new Matrix4x4f[0];
+		}
+		private IReadOnlyList<uint> GetBoneNameHashes(Version version)
+		{
+			return IsReadBoneNameHashes(version) ? BoneNameHashes : new uint[0];
+		}
+		private IReadOnlyList<MinMaxAABB> GetBonesAABB(Version version)
+		{
+			return IsReadBonesAABB(version) ? BonesAABB : new MinMaxAABB[0];
+		}
+		private VariableBoneCountWeights GetVariableBoneCountWeights(Version version)
+		{
+			return IsReadBonesAABB(version) ? VariableBoneCountWeights : new VariableBoneCountWeights(true);
+		}
 		private IReadOnlyList<byte> GetIndexBuffer(Version version, Platform platform)
 		{
-			if(IsReadIndexBuffer(version))
+			if (IsReadIndexBuffer(version))
 			{
-				if(platform == Platform.XBox360)
+				if (platform == Platform.XBox360)
 				{
-					AlignType align = (IsReadUse16bitIndices(version) && !Use16bitIndices) ? AlignType.Align4 : AlignType.Align2;
+					AlignType align = (IsReadUse16bitIndices(version) && Use16bitIndices) ? AlignType.Align2 : AlignType.Align4;
 					return m_indexBuffer.SwapBytes(align);
 				}
 				return IndexBuffer;
@@ -521,13 +592,13 @@ namespace uTinyRipper.Classes
 
 		private IReadOnlyList<BoneWeights4> GetSkin(Version version)
 		{
-			if(IsReadSkin(version))
+			if (IsReadSkin(version))
 			{
 				return Skin;
 			}
 			else
 			{
-				return VertexData.GenerateSkin();
+				return GetVertexData(version).GenerateSkin(version);
 			}
 		}
 
@@ -537,6 +608,17 @@ namespace uTinyRipper.Classes
 			{
 				if (IsReadOnlyVertexData(version))
 				{
+					if (IsReadStreamData(version) && StreamData.IsValid)
+					{
+						byte[] data = StreamData.GetContent(File);
+						if (data == null)
+						{
+							Logger.Log(LogType.Warning, LogCategory.Export, $"Can't export '{ValidName}' because resources file '{StreamData.Path}' wasn't found");
+							return VertexData;
+						}
+						return new VertexData(VertexData, data);
+					}
+
 					return VertexData;
 				}
 				else
@@ -547,14 +629,43 @@ namespace uTinyRipper.Classes
 					}
 					else
 					{
-						return new VertexData(version, Vertices, Normals, Colors, UV, UV1, Tangents);
+						return new VertexData(Vertices, Normals, Colors, UV, UV1, Tangents);
 					}
 				}
 			}
 			else
 			{
-				return new VertexData(version, Vertices, Normals, Colors, UV, UV1, Tangents);
+				return new VertexData(Vertices, Normals, Colors, UV, UV1, Tangents);
 			}
+		}
+
+		private IReadOnlyList<byte> GetBakedConvexCollisionMesh(Version version)
+		{
+			return IsReadCollision(version) ? CollisionData.BakedConvexCollisionMesh : new byte[0];
+		}
+		private IReadOnlyList<byte> GetBakedTriangleCollisionMesh(Version version)
+		{
+			return IsReadCollision(version) ? CollisionData.BakedTriangleCollisionMesh : new byte[0];
+		}
+		private bool GetMeshOptimized(Version version, TransferInstructionFlags flags)
+		{
+#if UNIVERSAL
+			if (IsReadMeshOptimized(version, flags))
+			{
+				return MeshOptimizationFlags == 0 ? false : true;
+			}
+#endif
+			return false;
+		}
+		private MeshOptimizationFlags GetMeshOptimizationFlags(Version version, TransferInstructionFlags flags)
+		{
+#if UNIVERSAL
+			if (IsReadMeshOptimizationFlags(version, flags))
+			{
+				return MeshOptimizationFlags;
+			}
+#endif
+			return MeshOptimizationFlags.Everything;
 		}
 
 		public IReadOnlyList<LOD> LODData => m_LODData;
@@ -577,21 +688,53 @@ namespace uTinyRipper.Classes
 		/// </summary>
 		public bool Use16bitIndices { get; private set; }
 		public uint RootBoneNameHash { get; private set; }
+		public IReadOnlyList<MinMaxAABB> BonesAABB => m_bonesAABB;
 		public MeshCompression MeshCompression { get; private set; }
 		public byte StreamCompression { get; private set; }
 		public bool IsReadable { get; private set; }
 		public bool KeepVertices { get; private set; }
 		public bool KeepIndices { get; private set; }
-		public int IndexFormat { get; private set; }
+		public IndexFormat IndexFormat { get; private set; }
 		public int CollisionVertexCount { get; private set; }
 		public int MeshUsageFlags { get; private set; }
+#if UNIVERSAL
+		public MeshOptimizationFlags MeshOptimizationFlags { get; private set; }
+#endif
+
+		public const string SubMeshesName = "m_SubMeshes";
+		public const string ShapesName = "m_Shapes";
+		public const string BindPoseName = "m_BindPose";
+		public const string BoneNamesName = "m_BoneNames";
+		public const string BoneNameHashesName = "m_BoneNameHashes";
+		public const string RootBoneNameName = "m_RootBoneName";
+		public const string RootBoneNameHashName = "m_RootBoneNameHash";
+		public const string BonesAABBName = "m_BonesAABB";
+		public const string VariableBoneCountWeightsName = "m_VariableBoneCountWeights";
+		public const string MeshCompressionName = "m_MeshCompression";
+		public const string IsReadableName = "m_IsReadable";
+		public const string KeepVerticesName = "m_KeepVertices";
+		public const string KeepIndicesName = "m_KeepIndices";
+		public const string IndexFormatName = "m_IndexFormat";
+		public const string IndexBufferName = "m_IndexBuffer";
+		public const string SkinName = "m_Skin";
+		public const string VertexDataName = "m_VertexData";
+		public const string CompressedMeshName = "m_CompressedMesh";
+		public const string LocalAABBName = "m_LocalAABB";
+		public const string MeshUsageFlagsName = "m_MeshUsageFlags";
+		public const string BakedConvexCollisionMeshName = "m_BakedConvexCollisionMesh";
+		public const string BakedTriangleCollisionMeshName = "m_BakedTriangleCollisionMesh";
+		public const string MeshOptimizedName = "m_MeshOptimized";
+		public const string MeshOptimizationFlagsName = "m_MeshOptimizationFlags";
+		public const string StreamDataName = "m_StreamData";
 
 		public BlendShapeData Shapes;
+		public VariableBoneCountWeights VariableBoneCountWeights;
 		public VertexData VertexData;
 		public CompressedMesh CompressedMesh;
 		public AABB LocalAABB;
 		public CollisionMeshData CollisionData;
-		
+		public StreamingInfo StreamData;
+
 		private LOD[] m_LODData;
 		private Vector2f[] m_UV;
 		private Vector2f[] m_UV1;
@@ -605,6 +748,7 @@ namespace uTinyRipper.Classes
 		private SubMesh[] m_subMeshes;
 		private Matrix4x4f[] m_bindPoses;
 		private uint[] m_boneNameHashes;
+		private MinMaxAABB[] m_bonesAABB;
 		private Vector3f[] m_vertices;
 		private BoneWeights4[] m_skin;
 		private float[] m_meshMetrics;

@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Globalization;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct Rectf : IScriptStructure
+	public struct Rectf : ISerializableStructure
 	{
 		private static int GetSerializedVersion(Version version)
 		{
-#warning TODO: serialized version acording to read version (current 2017.3.0f3)
+			// TODO:
 			return 2;
 		}
 		
@@ -23,11 +25,6 @@ namespace uTinyRipper.Classes
 
 		public Rectf(Vector2f positon, Vector2f size):
 			this(positon.X, positon.Y, size.X, size.Y)
-		{
-		}
-
-		public Rectf(Rectf copy):
-			this(copy.X, copy.Y, copy.Width, copy.Height)
 		{
 		}
 
@@ -93,9 +90,9 @@ namespace uTinyRipper.Classes
 			return result;
 		}
 
-		public IScriptStructure CreateCopy()
+		public ISerializableStructure CreateDuplicate()
 		{
-			return new Rectf(this);
+			return new Rectf();
 		}
 
 		public void Read(AssetReader reader)
@@ -109,7 +106,7 @@ namespace uTinyRipper.Classes
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
 			node.Add("x", X);
 			node.Add("y", Y);
 			node.Add("width", Width);
@@ -150,7 +147,7 @@ namespace uTinyRipper.Classes
 
 		public override string ToString()
 		{
-			return $"[X:{X:0.00}, Y:{Y:0.00}, W:{Width:0.00}, H:{Height:0.00}]";
+			return string.Format(CultureInfo.InvariantCulture, "[X:{0:0.00}, Y:{1:0.00}, W:{2:0.00}, H:{3:0.00}", X, Y, Width, Height);
 		}
 
 		public bool ContainsCorner(Vector2f position)
@@ -167,10 +164,6 @@ namespace uTinyRipper.Classes
 		}
 
 		public Vector2f Center => new Vector2f(X + Width / 2.0f, Y + Height / 2.0f);
-
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.RectName;
 
 		public Vector2f Position => new Vector2f(X, Y);
 		public Vector2f Size => new Vector2f(Width, Height);

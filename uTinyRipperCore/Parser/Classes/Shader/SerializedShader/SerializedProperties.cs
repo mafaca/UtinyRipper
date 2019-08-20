@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 
 namespace uTinyRipper.Classes.Shaders
@@ -7,18 +7,18 @@ namespace uTinyRipper.Classes.Shaders
 	{
 		public void Read(AssetReader reader)
 		{
-			m_props = reader.ReadArray<SerializedProperty>();
+			m_props = reader.ReadAssetArray<SerializedProperty>();
 		}
 
 		public void Export(TextWriter writer)
 		{
-			writer.WriteIntent(1);
+			writer.WriteIndent(1);
 			writer.Write("Properties {\n");
 			foreach(SerializedProperty prop in Props)
 			{
 				prop.Export(writer);
 			}
-			writer.WriteIntent(1);
+			writer.WriteIndent(1);
 			writer.Write("}\n");
 		}
 

@@ -1,12 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct Quaternionf : IScriptStructure
+	public struct Quaternionf : ISerializableStructure
 	{
 		public Quaternionf(float x, float y, float z, float w)
 		{
@@ -14,11 +16,6 @@ namespace uTinyRipper.Classes
 			Y = y;
 			Z = z;
 			W = w;
-		}
-
-		public Quaternionf(Quaternionf copy) :
-			this(copy.X, copy.Y, copy.Z, copy.W)
-		{
 		}
 
 		public float this[int index]
@@ -63,9 +60,9 @@ namespace uTinyRipper.Classes
 			}
 		}
 
-		public IScriptStructure CreateCopy()
+		public ISerializableStructure CreateDuplicate()
 		{
-			return new Quaternionf(this);
+			return new Quaternionf();
 		}
 
 		public void Read(AssetReader reader)
@@ -94,9 +91,9 @@ namespace uTinyRipper.Classes
 
 		public Vector3f ToEuler()
 		{
-			double eax = 0;
-			double eay = 0;
-			double eaz = 0;
+			double eax;
+			double eay;
+			double eaz;
 
 			float qx = X;
 			float qy = -Y;
@@ -140,15 +137,11 @@ namespace uTinyRipper.Classes
 
 		public override string ToString()
 		{
-			return $"[{X:0.00}, {Y:0.00}, {Z:0.00}, {W:0.00}]";
+			return string.Format(CultureInfo.InvariantCulture, "[{0:0.00}, {1:0.00}, {2:0.00}, {3:0.00}]", X, Y, Z, W);
 		}
 
 		public static Quaternionf Zero => new Quaternionf(0.0f, 0.0f, 0.0f, 1.0f);
 		public static Quaternionf DefaultWeight => new Quaternionf(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f);
-
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.QuaternionName;
 
 		public float X { get; private set; }
 		public float Y { get; private set; }

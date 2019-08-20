@@ -1,35 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct Matrix4x4f : IScriptStructure
+	public struct Matrix4x4f : ISerializableStructure
 	{
-		public Matrix4x4f(Matrix4x4f copy)
+		public ISerializableStructure CreateDuplicate()
 		{
-			E00 = copy.E00;
-			E01 = copy.E01;
-			E02 = copy.E02;
-			E03 = copy.E03;
-			E10 = copy.E10;
-			E11 = copy.E11;
-			E12 = copy.E12;
-			E13 = copy.E13;
-			E20 = copy.E20;
-			E21 = copy.E21;
-			E22 = copy.E22;
-			E23 = copy.E23;
-			E30 = copy.E30;
-			E31 = copy.E31;
-			E32 = copy.E32;
-			E33 = copy.E33;
-		}
-
-		public IScriptStructure CreateCopy()
-		{
-			return new Matrix4x4f(this);
+			return new Matrix4x4f();
 		}
 
 		public void Read(AssetReader reader)
@@ -79,9 +60,7 @@ namespace uTinyRipper.Classes
 			yield break;
 		}
 
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.Matrix4x4Name;
+		public static Matrix4x4f Identity => new Matrix4x4f { E00 = 1.0f, E11 = 1.0f, E22 = 1.0f, E33 = 1.0f };
 
 		public float E00 { get; private set; }
 		public float E01 { get; private set; }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes.Avatars
 {
@@ -30,20 +30,13 @@ namespace uTinyRipper.Classes.Avatars
 		
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
-			{
-				return 3;
-			}
-			
-#warning unknown
-			if (version.IsGreaterEqual(4, 3, 0, VersionType.Beta, 1))
-			{
-				return 3;
-			}
 			if (version.IsGreater(4, 3))
 			{
-				return 2;
+				return 3;
 			}
+			// unknown (alpha) version
+			//return 2;
+
 			return 1;
 		}
 
@@ -62,6 +55,14 @@ namespace uTinyRipper.Classes.Avatars
 			{
 				m_humanSkeletonReverseIndexArray = reader.ReadInt32Array();
 			}
+			else
+			{
+				m_humanSkeletonReverseIndexArray = new int[AvatarSkeleton.Instance.Node.Count];
+				for (int i = 0; i < AvatarSkeleton.Instance.Node.Count; i++)
+				{
+					m_humanSkeletonReverseIndexArray[i] = m_humanSkeletonIndexArray.IndexOf(i);
+				}
+			}
 			RootMotionBoneIndex = reader.ReadInt32();
 			RootMotionBoneX.Read(reader);
 			if (IsReadRootMotionSkeleton(reader.Version))
@@ -75,19 +76,19 @@ namespace uTinyRipper.Classes.Avatars
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("m_AvatarSkeleton", AvatarSkeleton.ExportYAML(container));
-			node.Add("m_AvatarSkeletonPose", AvatarSkeletonPose.ExportYAML(container));
-			node.Add("m_DefaultPose", GetDefaultPose(container.Version).ExportYAML(container));
-			node.Add("m_SkeletonNameIDArray", GetSkeletonNameIDArray(container.Version).ExportYAML(true));
-			node.Add("m_Human", Human.ExportYAML(container));
-			node.Add("m_HumanSkeletonIndexArray", HumanSkeletonIndexArray.ExportYAML(true));
-			node.Add("m_HumanSkeletonReverseIndexArray", GetHumanSkeletonReverseIndexArray(container.Version).ExportYAML(true));
-			node.Add("m_RootMotionBoneIndex", RootMotionBoneIndex);
-			node.Add("m_RootMotionBoneX", RootMotionBoneX.ExportYAML(container));
-			node.Add("m_RootMotionSkeleton", RootMotionSkeleton.ExportYAML(container));
-			node.Add("m_RootMotionSkeletonPose", RootMotionSkeletonPose.ExportYAML(container));
-			node.Add("m_RootMotionSkeletonIndexArray", GetRootMotionSkeletonIndexArray(container.Version).ExportYAML(true));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
+			node.Add(AvatarSkeletonName, AvatarSkeleton.ExportYAML(container));
+			node.Add(AvatarSkeletonPoseName, AvatarSkeletonPose.ExportYAML(container));
+			node.Add(DefaultPoseName, GetDefaultPose(container.Version).ExportYAML(container));
+			node.Add(SkeletonNameIDArrayName, GetSkeletonNameIDArray(container.Version).ExportYAML(true));
+			node.Add(HumanName, Human.ExportYAML(container));
+			node.Add(HumanSkeletonIndexArrayName, HumanSkeletonIndexArray.ExportYAML(true));
+			node.Add(HumanSkeletonReverseIndexArrayName, HumanSkeletonReverseIndexArray.ExportYAML(true));
+			node.Add(RootMotionBoneIndexName, RootMotionBoneIndex);
+			node.Add(RootMotionBoneXName, RootMotionBoneX.ExportYAML(container));
+			node.Add(RootMotionSkeletonName, RootMotionSkeleton.ExportYAML(container));
+			node.Add(RootMotionSkeletonPoseName, RootMotionSkeletonPose.ExportYAML(container));
+			node.Add(RootMotionSkeletonIndexArrayName, GetRootMotionSkeletonIndexArray(container.Version).ExportYAML(true));
 			return node;
 		}
 
@@ -99,10 +100,6 @@ namespace uTinyRipper.Classes.Avatars
 		{
 			return IsReadDefaultPose(version) ? SkeletonNameIDArray : AvatarSkeleton.Instance.ID;
 		}
-		private IReadOnlyList<int> GetHumanSkeletonReverseIndexArray(Version version)
-		{
-			return IsReadHumanSkeletonReverseIndexArray(version) ? HumanSkeletonReverseIndexArray : new int[0];
-		}
 		private IReadOnlyList<int> GetRootMotionSkeletonIndexArray(Version version)
 		{
 			return IsReadRootMotionSkeleton(version) ? RootMotionSkeletonIndexArray : new int[0];
@@ -113,6 +110,19 @@ namespace uTinyRipper.Classes.Avatars
 		public IReadOnlyList<int> HumanSkeletonReverseIndexArray => m_humanSkeletonReverseIndexArray;
 		public int RootMotionBoneIndex { get; private set; }
 		public IReadOnlyList<int> RootMotionSkeletonIndexArray => m_rootMotionSkeletonIndexArray;
+
+		public const string AvatarSkeletonName = "m_AvatarSkeleton";
+		public const string AvatarSkeletonPoseName = "m_AvatarSkeletonPose";
+		public const string DefaultPoseName = "m_DefaultPose";
+		public const string SkeletonNameIDArrayName = "m_SkeletonNameIDArray";
+		public const string HumanName = "m_Human";
+		public const string HumanSkeletonIndexArrayName = "m_HumanSkeletonIndexArray";
+		public const string HumanSkeletonReverseIndexArrayName = "m_HumanSkeletonReverseIndexArray";
+		public const string RootMotionBoneIndexName = "m_RootMotionBoneIndex";
+		public const string RootMotionBoneXName = "m_RootMotionBoneX";
+		public const string RootMotionSkeletonName = "m_RootMotionSkeleton";
+		public const string RootMotionSkeletonPoseName = "m_RootMotionSkeletonPose";
+		public const string RootMotionSkeletonIndexArrayName = "m_RootMotionSkeletonIndexArray";
 
 		/// <summary>
 		/// Skeleton previously

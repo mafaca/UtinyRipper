@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.AnimatorControllers;
 using uTinyRipper.Classes.AnimatorControllers.Editor;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
@@ -26,8 +26,8 @@ namespace uTinyRipper.Classes
 		/// </summary>
 		public static bool IsReadMultiThreadedStateMachine(Version version)
 		{
-#warning unknown
-			return version.IsGreater(5, 0, 0, VersionType.Beta, 1) && version.IsLess(5, 2) || version.IsGreaterEqual(5, 4);
+			// unknown start version
+			return version.IsGreaterEqual(5, 0, 0, VersionType.Final) && version.IsLess(5, 2) || version.IsGreaterEqual(5, 4);
 		}
 
 		/// <summary>
@@ -40,21 +40,16 @@ namespace uTinyRipper.Classes
 
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
+			// unknown version
+			if (version.IsGreaterEqual(5, 0, 0, VersionType.Final))
 			{
 				return 5;
 			}
-			
-#warning unknown
-			if (version.IsGreater(5, 0, 0, VersionType.Beta))
-			{
-				return 5;
-			}
-			if (version.IsEqual(5, 0, 0, VersionType.Beta))
+			// unknown version
+			if (version.IsGreaterEqual(5, 0, 0, VersionType.Beta))
 			{
 				return 4;
 			}
-#warning unknown
 			if (version.IsGreaterEqual(5))
 			{
 				return 3;
@@ -74,12 +69,12 @@ namespace uTinyRipper.Classes
 			Controller.Read(reader);
 			m_TOS.Clear();
 			m_TOS.Read(reader);
-			m_animationClips = reader.ReadArray<PPtr<AnimationClip>>();
+			m_animationClips = reader.ReadAssetArray<PPtr<AnimationClip>>();
 
 			if (IsReadStateMachineBehaviourVectorDescription(reader.Version))
 			{
 				StateMachineBehaviourVectorDescription.Read(reader);
-				m_stateMachineBehaviours = reader.ReadArray<PPtr<MonoBehaviour>>();
+				m_stateMachineBehaviours = reader.ReadAssetArray<PPtr<MonoBehaviour>>();
 			}
 
 			if (!IsAlignMultiThreadedStateMachine(reader.Version))
@@ -157,7 +152,6 @@ namespace uTinyRipper.Classes
 
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
-#warning TODO: serialized version acording to read version (current 2017.3.0f3)
 			AnimatorControllerExportCollection collection = (AnimatorControllerExportCollection)container.CurrentCollection;
 
 			AnimatorControllerParameter[] @params = new AnimatorControllerParameter[Controller.Values.Instance.ValueArray.Count];
@@ -175,9 +169,9 @@ namespace uTinyRipper.Classes
 			}
 
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("m_AnimatorParameters", @params.ExportYAML(container));
-			node.Add("m_AnimatorLayers", layers.ExportYAML(container));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
+			node.Add(AnimatorParametersName, @params.ExportYAML(container));
+			node.Add(AnimatorLayersName, layers.ExportYAML(container));
 			return node;
 		}
 
@@ -188,6 +182,9 @@ namespace uTinyRipper.Classes
 		public IReadOnlyList<PPtr<AnimationClip>> AnimationClips => m_animationClips;
 		public IReadOnlyList<PPtr<MonoBehaviour>> StateMachineBehaviours => m_stateMachineBehaviours;
 		public bool MultiThreadedStateMachine { get; private set; }
+
+		public const string AnimatorParametersName = "m_AnimatorParameters";
+		public const string AnimatorLayersName = "m_AnimatorLayers";
 
 		public ControllerConstant Controller;
 		public StateMachineBehaviourVectorDescription StateMachineBehaviourVectorDescription;

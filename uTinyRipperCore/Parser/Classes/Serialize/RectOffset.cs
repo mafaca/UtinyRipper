@@ -1,23 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct RectOffset : IScriptStructure
+	public struct RectOffset : ISerializableStructure
 	{
-		public RectOffset(RectOffset copy)
+		public ISerializableStructure CreateDuplicate()
 		{
-			Left = copy.Left;
-			Right = copy.Right;
-			Top = copy.Top;
-			Bottom = copy.Bottom;
-		}
-
-		public IScriptStructure CreateCopy()
-		{
-			return new RectOffset(this);
+			return new RectOffset();
 		}
 
 		public void Read(AssetReader reader)
@@ -42,10 +35,6 @@ namespace uTinyRipper.Classes
 		{
 			yield break;
 		}
-
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.RectOffsetName;
 
 		public int Left { get; private set; }
 		public int Right { get; private set; }

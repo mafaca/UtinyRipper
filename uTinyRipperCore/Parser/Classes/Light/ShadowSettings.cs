@@ -1,5 +1,5 @@
 ﻿using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes.Lights
 {
@@ -48,11 +48,18 @@ namespace uTinyRipper.Classes.Lights
 			return version.IsGreater(5, 0, 0, VersionType.Beta);
 		}
 		/// <summary>
-		/// 5.3.0 and greater
+		/// 5.3.0b6 and greater
 		/// </summary>
 		public static bool IsReadNearPlane(Version version)
 		{
-			return version.IsGreaterEqual(5, 3);
+			return version.IsGreaterEqual(5, 3, 0, VersionType.Beta, 6);
+		}
+		/// <summary>
+		/// 2019.1.0b4 and greater
+		/// </summary>
+		public static bool IsReadCullingMatrixOverride(Version version)
+		{
+			return version.IsGreaterEqual(2019, 1, 0, VersionType.Beta, 4);
 		}
 
 		public void Read(AssetReader reader)
@@ -90,20 +97,35 @@ namespace uTinyRipper.Classes.Lights
 			{
 				NearPlane = reader.ReadSingle();
 			}
+			if (IsReadCullingMatrixOverride(reader.Version))
+			{
+				CullingMatrixOverride.Read(reader);
+				UseCullingMatrixOverride = reader.ReadBoolean();
+				reader.AlignStream(AlignType.Align4);
+			}
 		}
 
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
-#warning TODO: serialized version acording to read version (current 2017.3.0f3)
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.Add("m_Type", (int)Type);
-			node.Add("m_Resolution", Resolution);
-			node.Add("m_CustomResolution", CustomResolution);
-			node.Add("m_Strength", Strength);
-			node.Add("m_Bias", Bias);
-			node.Add("m_NormalBias", NormalBias);
-			node.Add("m_NearPlane", NearPlane);
+			node.Add(TypeName, (int)Type);
+			node.Add(ResolutionName, Resolution);
+			node.Add(CustomResolutionName, CustomResolution);
+			node.Add(StrengthName, Strength);
+			node.Add(BiasName, Bias);
+			node.Add(NormalBiasName, NormalBias);
+			node.Add(NearPlaneName, NearPlane);
+			if (IsReadCullingMatrixOverride(container.ExportVersion))
+			{
+				node.Add(CullingMatrixOverrideName, GetCullingMatrixOverride(container.Version).ExportYAML(container));
+				node.Add(UseCullingMatrixOverrideName, UseCullingMatrixOverride);
+			}
 			return node;
+		}
+
+		private Matrix4x4f GetCullingMatrixOverride(Version version)
+		{
+			return IsReadCullingMatrixOverride(version) ? CullingMatrixOverride : Matrix4x4f.Identity;
 		}
 
 		public LightShadows Type { get; private set; }
@@ -118,5 +140,18 @@ namespace uTinyRipper.Classes.Lights
 		public float SoftnessFade  { get; private set; }
 		public float NormalBias { get; private set; }
 		public float NearPlane { get; private set; }
+		public bool UseCullingMatrixOverride { get; private set; }
+		
+		public const string TypeName = "m_Type";
+		public const string ResolutionName = "m_Resolution";
+		public const string CustomResolutionName = "m_CustomResolution";
+		public const string StrengthName = "m_Strength";
+		public const string BiasName = "m_Bias";
+		public const string NormalBiasName = "m_NormalBias";
+		public const string NearPlaneName = "m_NearPlane";
+		public const string CullingMatrixOverrideName = "m_CullingMatrixOverride";
+		public const string UseCullingMatrixOverrideName = "m_UseCullingMatrixOverride";
+
+		public Matrix4x4f CullingMatrixOverride { get; private set; }
 	}
 }

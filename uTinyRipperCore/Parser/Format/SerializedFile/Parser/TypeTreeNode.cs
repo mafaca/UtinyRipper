@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace uTinyRipper.SerializedFiles
 {
@@ -13,6 +14,30 @@ namespace uTinyRipper.SerializedFiles
 			Depth = depth;
 		}
 
+		public TypeTreeNode(byte depth, bool isArray, string type, string name, int byteSize, int index, TransferMetaFlags metaFlag)
+		{
+			Depth = depth;
+			IsArray = isArray;
+			Type = type;
+			Name = name;
+			ByteSize = byteSize;
+			Index = index;
+			MetaFlag = metaFlag;
+		}
+
+		public static int GetNodeSize(FileGeneration generation)
+		{
+			return IsReadUnknown(generation) ? 32 : 24;
+		}
+
+		/// <summary>
+		/// 2019.1 and greater
+		/// </summary>
+		public static bool IsReadUnknown(FileGeneration generation)
+		{
+			return generation >= FileGeneration.FG_20191;
+		}
+
 		public void Read(SerializedFileReader reader)
 		{
 			Type = reader.ReadStringZeroTerm();
@@ -21,7 +46,7 @@ namespace uTinyRipper.SerializedFiles
 			Index = reader.ReadInt32();
 			IsArray = reader.ReadInt32() != 0;
 			Version = reader.ReadInt32();
-			MetaFlag = reader.ReadUInt32();
+			MetaFlag = (TransferMetaFlags)reader.ReadUInt32();
 		}
 
 		public void Read(SerializedFileReader reader, long stringPosition)
@@ -33,7 +58,12 @@ namespace uTinyRipper.SerializedFiles
 			uint name = reader.ReadUInt32();
 			ByteSize = reader.ReadInt32();
 			Index = reader.ReadInt32();
-			MetaFlag = reader.ReadUInt32();
+			MetaFlag = (TransferMetaFlags)reader.ReadUInt32();
+			if (IsReadUnknown(reader.Generation))
+			{
+				Unknown1 = reader.ReadUInt32();
+				Unknown2 = reader.ReadUInt32();
+			}
 
 			Type = ReadString(reader, stringPosition, type);
 			Name = ReadString(reader, stringPosition, name);
@@ -74,7 +104,17 @@ namespace uTinyRipper.SerializedFiles
 			}
 		}
 
-		public const int NodeSize = 24;
+		public StringBuilder ToString(StringBuilder sb)
+		{
+			sb.Append('\t', Depth).Append(Type).Append(' ').Append(Name);
+			sb.AppendFormat(" // ByteSize{0}{1:x}{2}, Index{3}{4:x}{5}, Version{6}{7:x}{8}, IsArray{{{9}}}, MetaFlag{10}{11:x}{12}",
+					"{", unchecked((uint)ByteSize), "}",
+					"{", Index, "}",
+					"{", Version, "}",
+					IsArray ? 1 : 0,
+					"{", MetaFlag, "}");
+			return sb;
+		}
 
 		/// <summary>
 		/// Field type version, starts with 1 and is incremented after the type information has been significantly updated in a new release.
@@ -98,7 +138,7 @@ namespace uTinyRipper.SerializedFiles
 		/// </summary>
 		public string Name { get; private set; }
 		/// <summary>
-		/// Size of the data value in bytes, e.g. 4 for int. -1 means that the field is a class and contains child fields only.
+		/// Size of the data value in bytes, e.g. 4 for int. -1 means that there is an array somewhere inside its hierarchy
 		/// Note: The padding for the alignment is not included in the size.
 		/// </summary>
 		public int ByteSize { get; private set; }
@@ -108,8 +148,10 @@ namespace uTinyRipper.SerializedFiles
 		/// </summary>
 		public int Index { get; private set; }
 		/// <summary>
-		/// Metaflags of the field. Purpose is mostly unknown.
+		/// Metaflags of the field
 		/// </summary>
-		public uint MetaFlag { get; private set; }
+		public TransferMetaFlags MetaFlag { get; private set; }
+		public uint Unknown1 { get; private set; }
+		public uint Unknown2 { get; private set; }
 	}
 }

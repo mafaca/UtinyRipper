@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Globalization;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct ColorRGBAf : IScriptStructure
+	public struct ColorRGBAf : ISerializableStructure
 	{
 		public ColorRGBAf(float r, float g, float b, float a)
 		{
@@ -27,9 +29,9 @@ namespace uTinyRipper.Classes
 			return color;
 		}
 
-		public IScriptStructure CreateCopy()
+		public ISerializableStructure CreateDuplicate()
 		{
-			return this;
+			return new ColorRGBAf();
 		}
 
 		public void Read(AssetReader reader)
@@ -51,10 +53,10 @@ namespace uTinyRipper.Classes
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
 			node.Style = MappingStyle.Flow;
-			node.Add("r", R);
-			node.Add("g", G);
-			node.Add("b", B);
-			node.Add("a", A);
+			node.Add(RName, R);
+			node.Add(GName, G);
+			node.Add(BName, B);
+			node.Add(AName, A);
 			return node;
 		}
 
@@ -63,11 +65,17 @@ namespace uTinyRipper.Classes
 			yield break;
 		}
 
+		public override string ToString()
+		{
+			return string.Format(CultureInfo.InvariantCulture, "[R:{0:0.00} G:{1:0.00} B:{2:0.00} A:{3:0.00}]", R, G, B, A);
+		}
+
 		public static ColorRGBAf White => new ColorRGBAf(1.0f, 1.0f, 1.0f, 1.0f);
 
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.ColorName;
+		public const string RName = "r";
+		public const string GName = "g";
+		public const string BName = "b";
+		public const string AName = "a";
 
 		public float R { get; private set; }
 		public float G { get; private set; }

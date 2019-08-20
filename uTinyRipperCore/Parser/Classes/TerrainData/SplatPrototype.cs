@@ -1,12 +1,28 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes.TerrainDatas
 {
 	public struct SplatPrototype : IAssetReadable, IYAMLExportable, IDependent
 	{
+		public SplatPrototype(bool _):
+			this()
+		{
+			TileSize = Vector2f.One;
+		}
+
+		public SplatPrototype(TerrainLayer layer)
+		{
+			Texture = layer.DiffuseTexture;
+			NormalMap = layer.NormalMapTexture;
+			TileSize = layer.TileSize;
+			TileOffset = layer.TileOffset;
+			SpecularMetallic = new Vector4f(layer.Specular.R, layer.Specular.G, layer.Specular.B, layer.Metallic);
+			Smoothness = layer.Smoothness;
+		}
+
 		/// <summary>
 		/// 4.0.0 and greater
 		/// </summary>
@@ -22,12 +38,12 @@ namespace uTinyRipper.Classes.TerrainDatas
 			return version.IsGreaterEqual(3);
 		}
 		/// <summary>
-		/// Greater than 5.0.0b1
+		/// 5.0.0f1 and greater
 		/// </summary>
 		public static bool IsReadSpecularMetallic(Version version)
 		{
-#warning unknown
-			return version.IsGreaterEqual(5, 0, 0, VersionType.Beta, 1);
+			// unknown version
+			return version.IsGreaterEqual(5, 0, 0, VersionType.Final);
 		}
 		/// <summary>
 		/// 5.0.1 and greater
@@ -71,16 +87,23 @@ namespace uTinyRipper.Classes.TerrainDatas
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.Add("texture", Texture.ExportYAML(container));
-			node.Add("normalMap", NormalMap.ExportYAML(container));
-			node.Add("tileSize", TileSize.ExportYAML(container));
-			node.Add("tileOffset", TileOffset.ExportYAML(container));
-			node.Add("specularMetallic", SpecularMetallic.ExportYAML(container));
-			node.Add("smoothness", Smoothness);
+			node.Add(TextureName, Texture.ExportYAML(container));
+			node.Add(NormalMapName, NormalMap.ExportYAML(container));
+			node.Add(TileSizeName, TileSize.ExportYAML(container));
+			node.Add(TileOffsetName, TileOffset.ExportYAML(container));
+			node.Add(SpecularMetallicName, SpecularMetallic.ExportYAML(container));
+			node.Add(SmoothnessName, Smoothness);
 			return node;
 		}
 
 		public float Smoothness { get; private set; }
+
+		public const string TextureName = "texture";
+		public const string NormalMapName = "normalMap";
+		public const string TileSizeName = "tileSize";
+		public const string TileOffsetName = "tileOffset";
+		public const string SpecularMetallicName = "specularMetallic";
+		public const string SmoothnessName = "smoothness";
 
 		public PPtr<Texture2D> Texture;
 		public PPtr<Texture2D> NormalMap;

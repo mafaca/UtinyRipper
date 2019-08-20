@@ -1,12 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
+using uTinyRipper.Classes.Fonts;
 using uTinyRipper.Classes.GUIStyles;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.Classes.GUITexts;
 using uTinyRipper.SerializedFiles;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes
 {
-	public struct GUIStyle : IScriptStructure
+	public struct GUIStyle : ISerializableStructure
 	{
 		public GUIStyle(bool _):
 			this()
@@ -19,37 +22,6 @@ namespace uTinyRipper.Classes
 			OnHover = new GUIStyleState(true);
 			OnActive = new GUIStyleState(true);
 			OnFocused = new GUIStyleState(true);
-		}
-
-		public GUIStyle(GUIStyle copy)
-		{
-			StyleName = copy.Name;
-			Normal = new GUIStyleState(copy.Normal);
-			Hover = new GUIStyleState(copy.Hover);
-			Active = new GUIStyleState(copy.Active);
-			Focused = new GUIStyleState(copy.Focused);
-			OnNormal = new GUIStyleState(copy.OnNormal);
-			OnHover = new GUIStyleState(copy.OnHover);
-			OnActive = new GUIStyleState(copy.OnActive);
-			OnFocused = new GUIStyleState(copy.OnFocused);
-			Border = new RectOffset(copy.Border);
-			Margin = new RectOffset(copy.Margin);
-			Padding = new RectOffset(copy.Padding);
-			Overflow = new RectOffset(copy.Overflow);
-			Font = copy.Font;
-			FontSize = copy.FontSize;
-			FontStyle = copy.FontStyle;
-			Alignment = copy.Alignment;
-			WordWrap = copy.WordWrap;
-			RichText = copy.RichText;
-			TextClipping = copy.TextClipping;
-			ImagePosition = copy.ImagePosition;
-			ContentOffset = new Vector2f(copy.ContentOffset);
-			FixedWidth = copy.FixedWidth;
-			FixedHeight = copy.FixedHeight;
-			StretchWidth = copy.StretchWidth;
-			StretchHeight = copy.StretchHeight;
-			ClipOffset = copy.ClipOffset;
 		}
 
 		/// <summary>
@@ -67,14 +39,14 @@ namespace uTinyRipper.Classes
 			return version.IsGreaterEqual(3, 0);
 		}
 
-		public IScriptStructure CreateCopy()
+		public ISerializableStructure CreateDuplicate()
 		{
-			return new GUIStyle(this);
+			return new GUIStyle();
 		}
 
 		public void Read(AssetReader reader)
 		{
-			StyleName = reader.ReadString();
+			Name = reader.ReadString();
 			Normal.Read(reader);
 			Hover.Read(reader);
 			Active.Read(reader);
@@ -84,7 +56,7 @@ namespace uTinyRipper.Classes
 			OnActive.Read(reader);
 			OnFocused.Read(reader);
 			Border.Read(reader);
-			if(IsBuiltIn(reader.Version))
+			if (IsBuiltIn(reader.Version))
 			{
 				Margin.Read(reader);
 				Padding.Read(reader);
@@ -97,7 +69,7 @@ namespace uTinyRipper.Classes
 			Overflow.Read(reader);
 			Font.Read(reader);
 
-			if(IsBuiltIn(reader.Version))
+			if (IsBuiltIn(reader.Version))
 			{
 				FontSize = reader.ReadInt32();
 				FontStyle = (FontStyle)reader.ReadInt32();
@@ -127,7 +99,7 @@ namespace uTinyRipper.Classes
 				ClipOffset.Read(reader);
 				FixedWidth = reader.ReadSingle();
 				FixedHeight = reader.ReadSingle();
-				if(IsReadFontSize(reader.Version))
+				if (IsReadFontSize(reader.Version))
 				{
 					FontSize = reader.ReadInt32();
 					FontStyle = (FontStyle)reader.ReadInt32();
@@ -176,14 +148,7 @@ namespace uTinyRipper.Classes
 			yield break;
 		}
 
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.GUIStyleName;
-
-		/// <summary>
-		/// Name field
-		/// </summary>
-		public string StyleName { get; private set; }
+		public string Name { get; private set; }
 		public int FontSize { get; private set; }
 		public FontStyle FontStyle { get; private set; }
 		public TextAnchor Alignment { get; private set; }

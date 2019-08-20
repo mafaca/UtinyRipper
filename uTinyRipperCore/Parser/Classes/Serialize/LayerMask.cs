@@ -1,31 +1,22 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct LayerMask : IScriptStructure
+	public struct LayerMask : ISerializableStructure
 	{
-		public LayerMask(LayerMask copy)
-		{
-			Bits = copy.Bits;
-		}
-
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
-			{
-				return 2;
-			}
-
-#warning TODO: unknown
+			// TODO:
 			return 2;
 		}
 
-		public IScriptStructure CreateCopy()
+		public ISerializableStructure CreateDuplicate()
 		{
-			return new LayerMask(this);
+			return new LayerMask();
 		}
 
 		public void Read(AssetReader reader)
@@ -36,7 +27,7 @@ namespace uTinyRipper.Classes
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
 			node.Add("m_Bits", Bits);
 			return node;
 		}
@@ -45,10 +36,6 @@ namespace uTinyRipper.Classes
 		{
 			yield break;
 		}
-
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.LayerMaskName;
 
 		public uint Bits { get; private set; }
 	}

@@ -1,5 +1,5 @@
 ﻿using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes
 {
@@ -14,17 +14,24 @@ namespace uTinyRipper.Classes
 		{
 			base.Read(reader);
 
-			IsEnabled = reader.ReadByte() == 0 ? false : true;
+			Enabled = reader.ReadByte() == 0 ? false : true;
 			reader.AlignStream(AlignType.Align4);
 		}
 
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
-			node.Add("m_Enabled", IsEnabled);
+			node.Add(EnabledName, Enabled);
 			return node;
 		}
 
-		public bool IsEnabled { get; private set; }
+		protected void ReadBase(AssetReader reader)
+		{
+			base.Read(reader);
+		}
+
+		public const string EnabledName = "m_Enabled";
+
+		public bool Enabled { get; private set; }
 	}
 }

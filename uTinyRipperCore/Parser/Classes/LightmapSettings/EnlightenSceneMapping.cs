@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes.LightmapSettingss
@@ -15,12 +15,12 @@ namespace uTinyRipper.Classes.LightmapSettingss
 			return version.IsGreaterEqual(5, 3);
 		}
 		/// <summary>
-		/// Greater than 5.0.0b1
+		/// 5.0.0f1 and greater
 		/// </summary>
 		public static bool IsReadTerrainChunks(Version version)
 		{
-#warning unknown
-			return version.IsGreater(5, 0, 0, VersionType.Beta, 1);
+			// unknown version
+			return version.IsGreaterEqual(5, 0, 0, VersionType.Final);
 		}
 
 		/// <summary>
@@ -33,29 +33,29 @@ namespace uTinyRipper.Classes.LightmapSettingss
 
 		public void Read(AssetReader reader)
 		{
-			m_renderers = reader.ReadArray<EnlightenRendererInformation>();
+			m_renderers = reader.ReadAssetArray<EnlightenRendererInformation>();
 			if(IsAlign(reader.Version))
 			{
 				reader.AlignStream(AlignType.Align4);
 			}
-			m_systems = reader.ReadArray<EnlightenSystemInformation>();
+			m_systems = reader.ReadAssetArray<EnlightenSystemInformation>();
 			if (IsAlign(reader.Version))
 			{
 				reader.AlignStream(AlignType.Align4);
 			}
 			if (IsReadProbesets(reader.Version))
 			{
-				m_probesets = reader.ReadArray<Hash128>();
+				m_probesets = reader.ReadAssetArray<Hash128>();
 				reader.AlignStream(AlignType.Align4);
 			}
-			m_systemAtlases = reader.ReadArray<EnlightenSystemAtlasInformation>();
+			m_systemAtlases = reader.ReadAssetArray<EnlightenSystemAtlasInformation>();
 			if (IsAlign(reader.Version))
 			{
 				reader.AlignStream(AlignType.Align4);
 			}
 			if(IsReadTerrainChunks(reader.Version))
 			{
-				m_terrainChunks = reader.ReadArray<EnlightenTerrainChunksInformation>();
+				m_terrainChunks = reader.ReadAssetArray<EnlightenTerrainChunksInformation>();
 				if (IsAlign(reader.Version))
 				{
 					reader.AlignStream(AlignType.Align4);

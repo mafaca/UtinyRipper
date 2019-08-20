@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -23,7 +23,7 @@ namespace uTinyRipper.Classes.Shaders
 
 		public void Export(TextWriter writer)
 		{
-			writer.WriteIntent(2);
+			writer.WriteIndent(2);
 			foreach(string attribute in Attributes)
 			{
 				writer.Write("[{0}] ", attribute);
@@ -90,6 +90,12 @@ namespace uTinyRipper.Classes.Shaders
 							break;
 						case 4:
 							writer.Write(nameof(SerializedPropertyType.Cube));
+							break;
+						case 5:
+							writer.Write("2DArray");
+							break;
+						case 6:
+							writer.Write(nameof(SerializedPropertyType.CubeArray));
 							break;
 						default:
 							throw new NotSupportedException("Texture dimension isn't supported");

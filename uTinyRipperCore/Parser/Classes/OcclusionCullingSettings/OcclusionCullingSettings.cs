@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.OcclusionCullingSettingses;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
@@ -16,7 +16,7 @@ namespace uTinyRipper.Classes
 		{
 		}
 		
-		public static bool IsCompatible(Object asset)
+		public static bool IsSceneCompatible(Object asset)
 		{
 			if (asset.ClassID == ClassIDType.GameObject)
 			{
@@ -29,7 +29,7 @@ namespace uTinyRipper.Classes
 			if (asset.ClassID == ClassIDType.MonoBehaviour)
 			{
 				MonoBehaviour monoBeh = (MonoBehaviour)asset;
-				if (monoBeh.IsScriptableObject())
+				if (!monoBeh.IsSceneObject)
 				{
 					return false;
 				}
@@ -145,11 +145,11 @@ namespace uTinyRipper.Classes
 			}
 			if (IsReadStaticRenderers(reader.Version, reader.Flags))
 			{
-				m_staticRenderers = reader.ReadArray<PPtr<Renderer>>();
+				m_staticRenderers = reader.ReadAssetArray<PPtr<Renderer>>();
 			}
 			if (IsReadPortals(reader.Version, reader.Flags))
 			{
-				m_portals = reader.ReadArray<PPtr<OcclusionPortal>>();
+				m_portals = reader.ReadAssetArray<PPtr<OcclusionPortal>>();
 			}
 
 			if (IsReadOcclusionBakeSettings(reader.Version, reader.Flags))
@@ -249,7 +249,7 @@ namespace uTinyRipper.Classes
 		public EngineGUID SceneGUID;
 		public PPtr<OcclusionCullingData> OcclusionCullingData;
 
-		public const string SceneKeyWord = "Scene";
+		public const string SceneKeyword = nameof(ClassIDType.Scene);
 
 		private byte[] m_PVSData;
 		private PPtr<Renderer>[] m_staticRenderers;

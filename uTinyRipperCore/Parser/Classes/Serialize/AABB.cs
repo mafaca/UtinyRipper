@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct AABB : IScriptStructure
+	public struct AABB : ISerializableStructure
 	{
 		public AABB(Vector3f center, Vector3f extent)
 		{
@@ -22,8 +23,8 @@ namespace uTinyRipper.Classes
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.Add("m_Center", Center.ExportYAML(container));
-			node.Add("m_Extent", Extent.ExportYAML(container));
+			node.Add(CenterName, Center.ExportYAML(container));
+			node.Add(ExtentName, Extent.ExportYAML(container));
 			return node;
 		}
 
@@ -32,14 +33,18 @@ namespace uTinyRipper.Classes
 			yield break;
 		}
 
-		public IScriptStructure CreateCopy()
+		public ISerializableStructure CreateDuplicate()
 		{
-			return this;
+			return new AABB();
 		}
 
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.BoundsName;
+		public override string ToString()
+		{
+			return $"C:{Center} E:{Extent}";
+		}
+
+		public const string CenterName = "m_Center";
+		public const string ExtentName = "m_Extent";
 
 		public Vector3f Center;
 		public Vector3f Extent;

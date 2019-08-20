@@ -1,14 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.LightmapSettingss;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.Classes.Textures;
 using uTinyRipper.SerializedFiles;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes
 {
 	public sealed class LightmapSettings : LevelGameManager
 	{
-		public LightmapSettings(AssetInfo assetInfo):
+		public LightmapSettings(AssetInfo assetInfo) :
 			base(assetInfo)
 		{
 		}
@@ -68,7 +69,7 @@ namespace uTinyRipper.Classes
 		public static bool IsReadGISettings(Version version)
 		{
 			return version.IsGreaterEqual(5);
-		}		
+		}
 		/// <summary>
 		/// Not Release
 		/// </summary>
@@ -78,15 +79,14 @@ namespace uTinyRipper.Classes
 			return version.IsGreaterEqual(2017) && !flags.IsRelease();
 		}
 		/// <summary>
-		/// Not Release
+		/// 5.0.0 and greater and Not Release
 		/// </summary>
 		public static bool IsReadLightingDataAsset(Version version, TransferInstructionFlags flags)
 		{
-#warning unknown version (random)
-			return version.IsGreaterEqual(2017) && !flags.IsRelease();
+			return version.IsGreaterEqual(5) && !flags.IsRelease();
 		}
 		/// <summary>
-		/// 5.0.0 to  exclusive
+		/// 5.0.0 to 5.6.0b6
 		/// </summary>
 		public static bool IsReadRuntimeCPUUsage(Version version)
 		{
@@ -125,29 +125,18 @@ namespace uTinyRipper.Classes
 
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
-			{
-				return 11;
-			}
-
-#warning unknown
-			if (version.IsGreaterEqual(2017, 0, 0, VersionType.Beta))
-			{
-				return 11;
-			}
 			if (version.IsGreaterEqual(2017))
 			{
-				return 10;
+				return 11;
 			}
+			// unknown (alpha) version
+			//return 10;
 			if (version.IsGreaterEqual(5, 6, 0, VersionType.Beta, 2))
 			{
 				return 9;
 			}
-#warning unknown
-			/*if (version.IsGreaterEqual(5, 6, 0, VersionType.Beta, ))
-			{
-				return 8;
-			}*/
+			// unknown (5.6.0b1-2) version
+			//return 8;
 			if (version.IsGreaterEqual(5, 4))
 			{
 				return 7;
@@ -156,25 +145,20 @@ namespace uTinyRipper.Classes
 			{
 				return 6;
 			}
-#warning unknown
-			if (version.IsGreater(5, 0, 0, VersionType.Beta))
+			// unknown version
+			if (version.IsGreaterEqual(5, 0, 0, VersionType.Final))
 			{
 				return 5;
 			}
-#warning unknown
-			if (version.IsGreater(5, 0, 0, VersionType.Beta, 1))
-			{
-				return 4;
-			}
-#warning unknown
-			if (version.IsGreaterEqual(5, 0, 0, VersionType.Beta))
+			// unknown (beta) version
+			// return 4;
+			if (version.IsGreaterEqual(5))
 			{
 				return 3;
 			}
-			if (version.IsGreaterEqual(5))
-			{
-				return 2;
-			}
+			// unknown (alpha) version
+			// return 2;
+
 			return 1;
 		}
 
@@ -182,35 +166,37 @@ namespace uTinyRipper.Classes
 		{
 			base.Read(reader);
 
-			if(IsReadEnlightenSceneMapping(reader.Version, reader.Flags))
+			if (IsReadEnlightenSceneMapping(reader.Version, reader.Flags))
 			{
 				EnlightenSceneMapping.Read(reader);
 			}
-			if(IsReadGIWorkflowMode(reader.Version, reader.Flags))
+#if UNIVERSAL
+			if (IsReadGIWorkflowMode(reader.Version, reader.Flags))
 			{
-				GIWorkflowMode = reader.ReadInt32();
+				GIWorkflowMode = (GIWorkflowMode)reader.ReadInt32();
 			}
+#endif
 
 			if (IsReadLightProbes(reader.Version, reader.Flags))
 			{
 				LightProbes.Read(reader);
 			}
-			if(IsReadLightmaps(reader.Flags))
+			if (IsReadLightmaps(reader.Flags))
 			{
-				m_lightmaps = reader.ReadArray<LightmapData>();
+				m_lightmaps = reader.ReadAssetArray<LightmapData>();
 			}
 			if (IsAlign1(reader.Version, reader.Flags))
 			{
 				reader.AlignStream(AlignType.Align4);
 			}
 
-			if(IsReadLightmapsMode(reader.Version, reader.Flags))
+			if (IsReadLightmapsMode(reader.Version, reader.Flags))
 			{
 				LightmapsMode = (LightmapsMode)reader.ReadInt32();
 			}
 			if (IsReadBakedColorSpace(reader.Version))
 			{
-				BakedColorSpace = reader.ReadInt32();
+				BakedColorSpace = (ColorSpace)reader.ReadInt32();
 			}
 			if (IsReadUseDualLightmapsInForward(reader.Version))
 			{
@@ -226,21 +212,23 @@ namespace uTinyRipper.Classes
 				GISettings.Read(reader);
 			}
 
+#if UNIVERSAL
 			if (IsReadLightmapEditorSettings(reader.Version, reader.Flags))
 			{
 				LightmapEditorSettings.Read(reader);
 			}
-			if(IsReadLightingDataAsset(reader.Version, reader.Flags))
+			if (IsReadLightingDataAsset(reader.Version, reader.Flags))
 			{
 				LightingDataAsset.Read(reader);
 			}
-			if(IsReadRuntimeCPUUsage(reader.Version))
+#endif
+			if (IsReadRuntimeCPUUsage(reader.Version))
 			{
 				RuntimeCPUUsage = reader.ReadInt32();
 			}
-			if(IsReadUseShadowmask(reader.Version))
+			if (IsReadUseShadowmask(reader.Version))
 			{
-				if(IsBoolShadowmask(reader.Version))
+				if (IsBoolShadowmask(reader.Version))
 				{
 					UseShadowmask = reader.ReadBoolean();
 				}
@@ -253,7 +241,7 @@ namespace uTinyRipper.Classes
 
 		public override IEnumerable<Object> FetchDependencies(ISerializedFile file, bool isLog = false)
 		{
-			foreach(Object asset in base.FetchDependencies(file, isLog))
+			foreach (Object asset in base.FetchDependencies(file, isLog))
 			{
 				yield return asset;
 			}
@@ -276,6 +264,7 @@ namespace uTinyRipper.Classes
 					}
 				}
 			}
+#if UNIVERSAL
 			if (IsReadLightmapEditorSettings(file.Version, file.Flags))
 			{
 				foreach (Object asset in LightmapEditorSettings.FetchDependencies(file, isLog))
@@ -285,26 +274,33 @@ namespace uTinyRipper.Classes
 			}
 			if (IsReadLightingDataAsset(file.Version, file.Flags))
 			{
-				yield return LightingDataAsset.FetchDependency(file, isLog, ToLogString, "m_LightingDataAsset");
+				yield return LightingDataAsset.FetchDependency(file, isLog, ToLogString, LightingDataAssetName);
 			}
+#endif
 		}
 
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("m_GIWorkflowMode", GetExportGIWorkflowMode(container.Version, container.Flags));
-			node.Add("m_GISettings", GetExportGISettings(container.Version).ExportYAML(container));
-			node.Add("m_LightmapEditorSettings", GetExportLightmapEditorSettings(container.Version, container.Flags).ExportYAML(container));
-#warning is that possible to somehow create LightingDataAsset with Release data?
-			node.Add("m_LightingDataAsset", LightingDataAsset.ExportYAML(container));
-			node.Add("m_UseShadowmask", GetExportUseShadowmask(container.Version));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
+			node.Add(GIWorkflowModeName, (int)GetExportGIWorkflowMode(container.Version, container.Flags));
+			node.Add(GISettingsName, GetExportGISettings(container.Version).ExportYAML(container));
+			node.Add(LightmapEditorSettingsName, GetExportLightmapEditorSettings(container.Version, container.Flags).ExportYAML(container));
+#warning is it possible to somehow create LightingDataAsset with Release data?
+			node.Add(LightingDataAssetName, GetLightingDataAsset(container.Version, container.Flags).ExportYAML(container));
+			node.Add(UseShadowmaskName, GetExportUseShadowmask(container.Version));
 			return node;
 		}
 
-		private int GetExportGIWorkflowMode(Version version, TransferInstructionFlags flags)
+		private GIWorkflowMode GetExportGIWorkflowMode(Version version, TransferInstructionFlags flags)
 		{
-			return IsReadGIWorkflowMode(version, flags) ? GIWorkflowMode : 1;
+#if UNIVERSAL
+			if (IsReadGIWorkflowMode(version, flags))
+			{
+				return GIWorkflowMode;
+			}
+#endif
+			return GIWorkflowMode.OnDemand;
 		}
 		private GISettings GetExportGISettings(Version version)
 		{
@@ -312,17 +308,35 @@ namespace uTinyRipper.Classes
 		}
 		private LightmapEditorSettings GetExportLightmapEditorSettings(Version version, TransferInstructionFlags flags)
 		{
-			return IsReadLightmapEditorSettings(version, flags) ? LightmapEditorSettings : new LightmapEditorSettings(true);
+#if UNIVERSAL
+			if (IsReadLightmapEditorSettings(version, flags))
+			{
+				return LightmapEditorSettings;
+			}
+#endif
+			return new LightmapEditorSettings(true);
+		}
+		private PPtr<LightingDataAsset> GetLightingDataAsset(Version version, TransferInstructionFlags flags)
+		{
+#if UNIVERSAL
+			if (IsReadLightingDataAsset(version, flags))
+			{
+				return LightingDataAsset;
+			}
+#endif
+			return default;
 		}
 		private bool GetExportUseShadowmask(Version version)
 		{
 			return IsReadUseShadowmask(version) ? UseShadowmask : true;
 		}
 
-		public int GIWorkflowMode { get; private set; }
+#if UNIVERSAL
+		public GIWorkflowMode GIWorkflowMode { get; private set; }
+#endif
 		public IReadOnlyList<LightmapData> Lightmaps => m_lightmaps;
 		public LightmapsMode LightmapsMode { get; private set; }
-		public int BakedColorSpace { get; private set; }
+		public ColorSpace BakedColorSpace { get; private set; }
 		public bool UseDualLightmapsInForward { get; private set; }
 		public int RuntimeCPUUsage { get; private set; }
 		/// <summary>
@@ -330,11 +344,22 @@ namespace uTinyRipper.Classes
 		/// </summary>
 		public bool UseShadowmask { get; private set; }
 
+		public const string GIWorkflowModeName = "m_GIWorkflowMode";
+		public const string GISettingsName = "m_GISettings";
+		public const string LightmapEditorSettingsName = "m_LightmapEditorSettings";
+		public const string LightingDataAssetName = "m_LightingDataAsset";
+		public const string UseShadowmaskName = "m_UseShadowmask";
+
 		public EnlightenSceneMapping EnlightenSceneMapping;
 		public PPtr<LightProbes> LightProbes;
 		public GISettings GISettings;
+#if UNIVERSAL
 		public LightmapEditorSettings LightmapEditorSettings;
+		/// <summary>
+		/// LightmapSnapshot previously
+		/// </summary>
 		public PPtr<LightingDataAsset> LightingDataAsset;
+#endif
 
 		private LightmapData[] m_lightmaps;
 	}

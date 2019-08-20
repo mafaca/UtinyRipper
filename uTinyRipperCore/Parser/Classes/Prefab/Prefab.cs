@@ -1,11 +1,15 @@
 ﻿using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.Prefabs;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
+using uTinyRipper.Classes.Objects;
 
 namespace uTinyRipper.Classes
 {
+	/// <summary>
+	/// PrefabInstance later
+	/// </summary>
 	public sealed class Prefab : Object
 	{
 		public Prefab(AssetInfo assetInfo):
@@ -14,7 +18,7 @@ namespace uTinyRipper.Classes
 		}
 
 		private Prefab(AssetInfo assetInfo, GameObject root) :
-			base(assetInfo, 1)
+			base(assetInfo, HideFlags.HideInHierarchy)
 		{
 			RootGameObject = root.File.CreatePPtr(root);
 			IsPrefabParent = true;
@@ -35,8 +39,7 @@ namespace uTinyRipper.Classes
 
 		private static IEnumerable<EditorExtension> FetchAssets(GameObject root, bool isLog = false)
 		{
-			IReadOnlyList<EditorExtension> hierarchy = root.CollectHierarchy();
-			foreach (EditorExtension asset in hierarchy)
+			foreach (EditorExtension asset in root.FetchHierarchy())
 			{
 				yield return asset;
 			}
@@ -44,7 +47,7 @@ namespace uTinyRipper.Classes
 
 		private static int GetSerializedVersion(Version version)
 		{
-#warning TODO: serialized version acording to read version (current 2017.3.0f3)
+			// TODO:
 			return 2;
 		}
 
@@ -93,7 +96,7 @@ namespace uTinyRipper.Classes
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
 			node.Add("m_Modification", Modification.ExportYAML(container));
 			node.Add("m_ParentPrefab", ParentPrefab.ExportYAML(container));
 			node.Add("m_RootGameObject", RootGameObject.ExportYAML(container));
@@ -101,15 +104,22 @@ namespace uTinyRipper.Classes
 			return node;
 		}
 
-		public override string ExportExtension => "prefab";
+		public override string ExportExtension => PrefabKeyword;
 
 		public bool IsPrefabParent { get; private set; }
 
 #if DEBUG
 		public string Name { get; private set; }
 #endif
+		
+		public const string PrefabKeyword = "prefab";
 
 		public PrefabModification Modification;
+		/// <summary>
+		/// SourcePrefab later
+		/// Prefab previously
+		/// Father previously
+		/// </summary>
 		public PPtr<Prefab> ParentPrefab;
 		public PPtr<GameObject> RootGameObject;
 	}

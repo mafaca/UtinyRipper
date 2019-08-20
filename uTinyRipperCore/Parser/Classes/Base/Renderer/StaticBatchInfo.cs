@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes.MeshRenderers
 {
@@ -25,7 +25,6 @@ namespace uTinyRipper.Classes.MeshRenderers
 						throw new Exception("Can't create static batch info from subset indices");
 					}
 				}
-
 			}
 		}
 
@@ -38,12 +37,15 @@ namespace uTinyRipper.Classes.MeshRenderers
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.Add("firstSubMesh", FirstSubMesh);
-			node.Add("subMeshCount", SubMeshCount);
+			node.Add(FirstSubMeshName, FirstSubMesh);
+			node.Add(SubMeshCountName, SubMeshCount);
 			return node;
 		}
 
 		public ushort FirstSubMesh { get; private set; }
 		public ushort SubMeshCount { get; private set; }
+
+		public const string FirstSubMeshName = "firstSubMesh";
+		public const string SubMeshCountName = "subMeshCount";
 	}
 }

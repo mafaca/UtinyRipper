@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using uTinyRipper.AssetExporters;
 using uTinyRipper.Classes.TagManagers;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 
 namespace uTinyRipper.Classes
 {
@@ -30,13 +30,7 @@ namespace uTinyRipper.Classes
 
 		private static int GetSerializedVersion(Version version)
 		{
-#warning TODO: serialized version acording to read version (current 2017.3.0f3)
-			if (Config.IsExportTopmostSerializedVersion)
-			{
-				return 2;
-			}
-
-			if(version.IsGreaterEqual(5))
+			if (version.IsGreaterEqual(5))
 			{
 				return 2;
 			}
@@ -62,14 +56,14 @@ namespace uTinyRipper.Classes
 			}
 			if(IsReadSortingLayers(reader.Version))
 			{
-				m_sortingLayers = reader.ReadArray<SortingLayerEntry>();
+				m_sortingLayers = reader.ReadAssetArray<SortingLayerEntry>();
 			}
 		}
 
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
 			node.Add("tags", Tags.ExportYAML());
 			node.Add("layers", Layers.ExportYAML());
 			node.Add("m_SortingLayers", GetSortingLayers(container.Version).ExportYAML(container));

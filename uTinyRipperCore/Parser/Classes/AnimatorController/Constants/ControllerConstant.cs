@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace uTinyRipper.Classes.AnimatorControllers
@@ -7,8 +7,8 @@ namespace uTinyRipper.Classes.AnimatorControllers
 	{		
 		public void Read(AssetReader reader)
 		{
-			m_layerArray = reader.ReadArray<OffsetPtr<LayerConstant>>();
-			m_stateMachineArray = reader.ReadArray<OffsetPtr<StateMachineConstant>>();
+			m_layerArray = reader.ReadAssetArray<OffsetPtr<LayerConstant>>();
+			m_stateMachineArray = reader.ReadAssetArray<OffsetPtr<StateMachineConstant>>();
 			Values.Read(reader);
 			DefaultValues.Read(reader);
 		}
@@ -49,7 +49,7 @@ namespace uTinyRipper.Classes.AnimatorControllers
 					return i;
 				}
 			}
-			throw new ArgumentException("Layer wasn't found", nameof(layer));
+			throw new ArgumentException("Layer hasn't been found", nameof(layer));
 		}
 
 		public IReadOnlyList<OffsetPtr<LayerConstant>> LayerArray => m_layerArray;

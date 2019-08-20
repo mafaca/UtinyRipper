@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
+using uTinyRipper.Assembly;
 using uTinyRipper.AssetExporters;
-using uTinyRipper.Exporter.YAML;
+using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
 
 namespace uTinyRipper.Classes
 {
-	public struct ColorRGBA32 : IScriptStructure
+	public struct ColorRGBA32 : ISerializableStructure
 	{
 		public ColorRGBA32(byte r, byte g, byte b, byte a)
 		{
@@ -24,18 +25,13 @@ namespace uTinyRipper.Classes
 
 		private static int GetSerializedVersion(Version version)
 		{
-			if (Config.IsExportTopmostSerializedVersion)
-			{
-				return 2;
-			}
-
 			// it's min version
 			return 2;
 		}
 
-		public IScriptStructure CreateCopy()
+		public ISerializableStructure CreateDuplicate()
 		{
-			return this;
+			return new ColorRGBA32();
 		}
 
 		public void Read(AssetReader reader)
@@ -51,8 +47,8 @@ namespace uTinyRipper.Classes
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.AddSerializedVersion(GetSerializedVersion(container.Version));
-			node.Add("rgba", RGBA);
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
+			node.Add(RgbaName, RGBA);
 			return node;
 		}
 
@@ -61,10 +57,10 @@ namespace uTinyRipper.Classes
 			yield break;
 		}
 
-		public IScriptStructure Base => null;
-		public string Namespace => ScriptType.UnityEngineName;
-		public string Name => ScriptType.Color32Name;
+		public static ColorRGBA32 White => new ColorRGBA32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue);
 
 		public uint RGBA { get; private set; }
+
+		public const string RgbaName = "rgba";
 	}
 }

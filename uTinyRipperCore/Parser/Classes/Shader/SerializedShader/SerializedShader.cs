@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace uTinyRipper.Classes.Shaders
 {
@@ -7,11 +7,11 @@ namespace uTinyRipper.Classes.Shaders
 		public void Read(AssetReader reader)
 		{
 			PropInfo.Read(reader);
-			m_subShaders = reader.ReadArray<SerializedSubShader>();
+			m_subShaders = reader.ReadAssetArray<SerializedSubShader>();
 			Name = reader.ReadString();
 			CustomEditorName = reader.ReadString();
 			FallbackName = reader.ReadString();
-			m_dependencies = reader.ReadArray<SerializedShaderDependency>();
+			m_dependencies = reader.ReadAssetArray<SerializedShaderDependency>();
 			DisableNoSubshadersMessage = reader.ReadBoolean();
 			reader.AlignStream(AlignType.Align4);
 		}
@@ -29,13 +29,13 @@ namespace uTinyRipper.Classes.Shaders
 
 			if(FallbackName != string.Empty)
 			{
-				writer.WriteIntent(1);
+				writer.WriteIndent(1);
 				writer.Write("Fallback \"{0}\"\n", FallbackName);
 			}
 
 			if (CustomEditorName != string.Empty)
 			{
-				writer.WriteIntent(1);
+				writer.WriteIndent(1);
 				writer.Write("CustomEditor \"{0}\"\n", CustomEditorName);
 			}
 
