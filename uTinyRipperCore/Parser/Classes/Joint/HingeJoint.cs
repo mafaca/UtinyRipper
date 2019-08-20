@@ -14,6 +14,14 @@ namespace uTinyRipper.Classes
 		{
 		}
 
+		/// <summary>
+		/// 2017.0.0 and greater
+		/// </summary>
+		private static bool IsReadMassScale(Version version)
+		{
+			return version.IsGreaterEqual(2017, 0);
+		}
+
 		public override void Read(AssetReader reader)
 		{
 			base.Read(reader);
@@ -37,10 +45,12 @@ namespace uTinyRipper.Classes
 			BreakForce = reader.ReadSingle();
 			BreakTorque = reader.ReadSingle();
 			EnableCollision = reader.ReadBoolean();
-			EnablePreprocessing = reader.ReadBoolean();
-			reader.AlignStream(AlignType.Align4);
-			MassScale = reader.ReadSingle();
-			ConnectedMassScale = reader.ReadSingle();
+			if (IsReadMassScale(reader.Version))
+			{
+				reader.AlignStream(AlignType.Align4);
+				MassScale = reader.ReadSingle();
+				ConnectedMassScale = reader.ReadSingle();
+			}
 		}
 
 		public override IEnumerable<Object> FetchDependencies(ISerializedFile file, bool isLog = false)
