@@ -1,4 +1,4 @@
-﻿namespace uTinyRipper.Classes.Joint
+﻿namespace uTinyRipper.Classes.Joints
 {
 	public enum ConfigurableJointMotion
 	{

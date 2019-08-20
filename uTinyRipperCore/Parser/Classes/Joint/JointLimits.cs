@@ -1,7 +1,7 @@
 ﻿using uTinyRipper.AssetExporters;
 using uTinyRipper.YAML;
 
-namespace uTinyRipper.Classes.Joint
+namespace uTinyRipper.Classes.Joints
 {
 	public struct JointLimits : IAssetReadable, IYAMLExportable
 	{

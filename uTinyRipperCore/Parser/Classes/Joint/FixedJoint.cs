@@ -2,7 +2,7 @@
 using uTinyRipper.AssetExporters;
 using uTinyRipper.YAML;
 using uTinyRipper.SerializedFiles;
-using uTinyRipper.Classes.Joint;
+using uTinyRipper.Classes.Joints;
 
 namespace uTinyRipper.Classes
 {
