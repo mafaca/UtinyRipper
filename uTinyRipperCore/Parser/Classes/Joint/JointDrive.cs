@@ -6,6 +6,12 @@ namespace uTinyRipper.Classes.Joint
 	public struct JointDrive : IAssetReadable, IYAMLExportable
 	{
 
+		private static int GetSerializedVersion(Version version)
+		{
+			// TODO:
+			return 2;
+		}
+
 		public void Read(AssetReader reader)
 		{
 			PositionSpring = reader.ReadSingle();
@@ -16,7 +22,7 @@ namespace uTinyRipper.Classes.Joint
 		public YAMLNode ExportYAML(IExportContainer container)
 		{
 			YAMLMappingNode node = new YAMLMappingNode();
-			node.AddSerializedVersion(3);
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
 			node.Add("positionSpring", PositionSpring);
 			node.Add("positionDamper", PositionDamper);
 			node.Add("maximumForce", MaximumForce);

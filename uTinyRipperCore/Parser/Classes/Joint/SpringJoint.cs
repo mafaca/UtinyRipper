@@ -13,6 +13,12 @@ namespace uTinyRipper.Classes
 		{
 		}
 
+		private static int GetSerializedVersion(Version version)
+		{
+			// TODO:
+			return 2;
+		}
+
 		/// <summary>
 		/// 2017.0.0 and greater
 		/// </summary>
@@ -65,8 +71,8 @@ namespace uTinyRipper.Classes
 			node.Add(AnchorName, Anchor.ExportYAML(container));
 			node.Add(AutoConfigureConnectedAnchorName, AutoConfigureConnectedAnchor);
 			node.Add(ConnectedAnchorName, ConnectedAnchor.ExportYAML(container));
-			node.AddSerializedVersion(2);
 
+			node.AddSerializedVersion(GetSerializedVersion(container.ExportVersion));
 			node.Add(SpringName, Spring);
 			node.Add(DamperName, Damper);
 			node.Add(MinDistanceName, MinDistance);
