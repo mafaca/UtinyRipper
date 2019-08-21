@@ -58,6 +58,10 @@ namespace uTinyRipper.Assembly.Mono
 		{
 			return IsObject(type.Namespace, type.Name);
 		}
+		public static bool IsGuid(TypeReference type)
+		{
+			return IsGuid(type.Namespace, type.Name);
+		}
 		public static bool IsString(TypeReference type)
 		{
 			return IsString(type.Namespace, type.Name);

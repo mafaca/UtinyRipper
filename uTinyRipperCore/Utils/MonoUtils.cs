@@ -298,6 +298,7 @@ namespace uTinyRipper
 
 		public const string ObjectName = "Object";
 		public const string CObjectName = "object";
+		public const string GuidName = "Guid";
 		public const string ValueType = "ValueType";
 		public const string VoidName = "Void";
 		public const string CVoidName = "void";

@@ -133,8 +133,11 @@ namespace uTinyRipper.Assembly.Mono
 			{
 				return true;
 			}
-
 			if (MonoType.IsObject(fieldType))
+			{
+				return false;
+			}
+			if (MonoType.IsGuid(fieldType))
 			{
 				return false;
 			}

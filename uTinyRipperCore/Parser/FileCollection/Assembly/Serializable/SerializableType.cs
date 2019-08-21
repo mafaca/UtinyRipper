@@ -103,6 +103,10 @@ namespace uTinyRipper.Assembly
 		{
 			return @namespace == SystemNamespace && (name == MonoUtils.ObjectName || name == MonoUtils.CObjectName);
 		}
+		public static bool IsGuid(string @namespace, string name)
+		{
+			return @namespace == SystemNamespace && name == MonoUtils.GuidName;
+		}
 		public static bool IsString(string @namespace, string name)
 		{
 			return @namespace == SystemNamespace && (name == MonoUtils.StringName || name == MonoUtils.CStringName);
