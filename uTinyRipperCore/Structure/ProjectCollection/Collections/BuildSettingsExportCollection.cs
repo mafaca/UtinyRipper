@@ -107,7 +107,7 @@ namespace uTinyRipper.Project
 			{
 				using (StreamWriter writer = new InvariantStreamWriter(fileStream, new UTF8Encoding(false)))
 				{
-					writer.Write("m_EditorVersion: 2017.3.0f3");
+					writer.Write($"m_EditorVersion: {container.Version}");
 				}
 			}
 			return true;
