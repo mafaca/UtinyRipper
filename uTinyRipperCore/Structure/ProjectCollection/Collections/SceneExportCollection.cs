@@ -220,10 +220,14 @@ namespace uTinyRipper.Project
 			{
 				int index = FileNameToSceneIndex(Name, File.Version);
 				string scenePath = container.SceneIndexToName(index);
-				int assetsNameIndex = scenePath.IndexOf(AssetsName, StringComparison.Ordinal);
-				if (assetsNameIndex != -1)
+				bool rooted = DirectoryUtils.IsPathRooted(AssetsName, out int prefixLength);
+				if (rooted || assetsNameIndex == 0)
 				{
-					string relativePath = scenePath.Substring(assetsNameIndex + AssetsName.Length);
+					if (rooted && assetsNameIndex != -1)
+					{
+						prefixLength = assetsNameIndex;
+					}
+					string relativePath = scenePath.Substring(prefixLength + AssetsName.Length);
 					string extension = Path.GetExtension(scenePath);
 					return relativePath.Substring(0, relativePath.Length - extension.Length);
 				}
