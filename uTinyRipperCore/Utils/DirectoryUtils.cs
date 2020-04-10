@@ -79,6 +79,31 @@ namespace uTinyRipper
 			}
 			return path;
 		}
+		
+		public static bool IsPathRooted(string path, out int prefixLength)
+		{
+			if (path.StartsWith(LongPathPrefix, StringComparison.Ordinal))
+			{
+				// TODO: prefix lengths for things other than drives
+				prefixLength = 7;
+				return true;
+			}
+
+			if (path.StartsWith("/", StringComparison.Ordinal))
+			{
+				prefixLength = 1;
+				return true;
+			}
+
+			if (path.Length > 3 && char.IsLetter(path[0]) && path[1] == ':' && path[2] == '\\')
+			{
+				prefixLength = 3;
+				return true;
+			}
+
+			prefixLength = 0;
+			return false;
+		}
 
 		public const string LongPathPrefix = @"\\?\";
 		public const int MaxDirectoryLength = 248;
