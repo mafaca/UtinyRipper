@@ -220,6 +220,7 @@ namespace uTinyRipper.Project
 			{
 				int index = FileNameToSceneIndex(Name, File.Version);
 				string scenePath = container.SceneIndexToName(index);
+				int assetsNameIndex = scenePath.IndexOf(AssetsName, StringComparison.Ordinal);
 				bool rooted = DirectoryUtils.IsPathRooted(AssetsName, out int prefixLength);
 				if (rooted || assetsNameIndex == 0)
 				{
