@@ -43,7 +43,7 @@ namespace uTinyRipperGUI.Exporters
 						}
 						else
 						{
-							ExportListing(writer, shader.Text);
+							writer.Write(shader.Text);
 						}
 					}
 				}

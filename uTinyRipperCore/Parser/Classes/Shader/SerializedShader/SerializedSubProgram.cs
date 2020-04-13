@@ -72,7 +72,6 @@ namespace uTinyRipper.Classes.Shaders
 
 		public void Export(ShaderWriter writer, ShaderType type, bool isTier)
 		{
-			writer.WriteIndent(4);
 #warning TODO: convertion (DX to HLSL)
 			ShaderGpuProgramType programType = GetProgramType(writer.Version);
 			GPUPlatform graphicApi = programType.ToGPUPlatform(writer.Platform);
@@ -81,15 +80,13 @@ namespace uTinyRipper.Classes.Shaders
 			{
 				writer.Write("hw_tier{0} ", ShaderHardwareTier.ToString("00"));
 			}
-			writer.Write("\" {\n");
-			writer.WriteIndent(5);
-
-			int platformIndex = writer.Shader.Platforms.IndexOf(graphicApi);
-			writer.Shader.Blobs[platformIndex].SubPrograms[BlobIndex].Export(writer, type);
-
-			writer.Write('\n');
-			writer.WriteIndent(4);
-			writer.Write("}\n");
+			writer.Write("\" ");
+			using (writer.IndentBrackets())
+			{
+				int platformIndex = writer.Shader.Platforms.IndexOf(graphicApi);
+				writer.Shader.Blobs[platformIndex].SubPrograms[BlobIndex].Export(writer, type);
+				writer.WriteLine();
+			}
 		}
 
 		public ShaderGpuProgramType GetProgramType(Version version)

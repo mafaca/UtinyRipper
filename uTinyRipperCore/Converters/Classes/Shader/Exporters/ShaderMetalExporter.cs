@@ -27,7 +27,10 @@ namespace uTinyRipper.Converters.Shaders
 						}
 					}
 
-					ExportText(writer, reader);
+					using (StreamReader streamReader = new StreamReader(reader.BaseStream))
+					{
+						writer.Write(streamReader.ReadToEnd());
+					}
 				}
 			}
 		}

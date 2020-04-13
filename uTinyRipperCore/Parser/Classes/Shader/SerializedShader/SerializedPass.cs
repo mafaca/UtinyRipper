@@ -38,63 +38,59 @@ namespace uTinyRipper.Classes.Shaders
 
 		public void Export(ShaderWriter writer)
 		{
-			writer.WriteIndent(2);
 			writer.Write("{0} ", Type.ToString());
 
 			if (Type == SerializedPassType.UsePass)
 			{
-				writer.Write("\"{0}\"\n", UseName);
+				writer.WriteLine("\"{0}\"", UseName);
 			}
 			else
 			{
-				writer.Write("{\n");
-
-				if (Type == SerializedPassType.GrabPass)
+				using (writer.IndentBrackets())
 				{
-					if (TextureName.Length > 0)
+					if (Type == SerializedPassType.GrabPass)
 					{
-						writer.WriteIndent(3);
-						writer.Write("\"{0}\"\n", TextureName);
+						if (TextureName.Length > 0)
+						{
+							writer.WriteLine("\"{0}\"", TextureName);
+						}
 					}
-				}
-				else if (Type == SerializedPassType.Pass)
-				{
-					State.Export(writer);
+					else if (Type == SerializedPassType.Pass)
+					{
+						State.Export(writer);
 
-					if ((ProgramMask & ShaderType.Vertex.ToProgramMask()) != 0)
-					{
-						ProgVertex.Export(writer, ShaderType.Vertex);
-					}
-					if ((ProgramMask & ShaderType.Fragment.ToProgramMask()) != 0)
-					{
-						ProgFragment.Export(writer, ShaderType.Fragment);
-					}
-					if ((ProgramMask & ShaderType.Geometry.ToProgramMask()) != 0)
-					{
-						ProgGeometry.Export(writer, ShaderType.Geometry);
-					}
-					if ((ProgramMask & ShaderType.Hull.ToProgramMask()) != 0)
-					{
-						ProgHull.Export(writer, ShaderType.Hull);
-					}
-					if ((ProgramMask & ShaderType.Domain.ToProgramMask()) != 0)
-					{
-						ProgDomain.Export(writer, ShaderType.Domain);
-					}
-					if ((ProgramMask & ShaderType.RayTracing.ToProgramMask()) != 0)
-					{
-						ProgDomain.Export(writer, ShaderType.RayTracing);
-					}
+						if ((ProgramMask & ShaderType.Vertex.ToProgramMask()) != 0)
+						{
+							ProgVertex.Export(writer, ShaderType.Vertex);
+						}
+						if ((ProgramMask & ShaderType.Fragment.ToProgramMask()) != 0)
+						{
+							ProgFragment.Export(writer, ShaderType.Fragment);
+						}
+						if ((ProgramMask & ShaderType.Geometry.ToProgramMask()) != 0)
+						{
+							ProgGeometry.Export(writer, ShaderType.Geometry);
+						}
+						if ((ProgramMask & ShaderType.Hull.ToProgramMask()) != 0)
+						{
+							ProgHull.Export(writer, ShaderType.Hull);
+						}
+						if ((ProgramMask & ShaderType.Domain.ToProgramMask()) != 0)
+						{
+							ProgDomain.Export(writer, ShaderType.Domain);
+						}
+						if ((ProgramMask & ShaderType.RayTracing.ToProgramMask()) != 0)
+						{
+							ProgDomain.Export(writer, ShaderType.RayTracing);
+						}
 
 #warning HasInstancingVariant?
+					}
+					else
+					{
+						throw new NotSupportedException($"Unsupported pass type {Type}");
+					}
 				}
-				else
-				{
-					throw new NotSupportedException($"Unsupported pass type {Type}");
-				}
-
-				writer.WriteIndent(2);
-				writer.Write("}\n");
 			}
 		}
 

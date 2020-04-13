@@ -15,11 +15,10 @@ namespace uTinyRipper.Classes.Shaders
 			ColMask.Read(reader);
 		}
 
-		public void Export(TextWriter writer, int index)
+		public void Export(ShaderWriter writer, int index)
 		{
 			if (!SrcBlendValue.IsOne() || !DestBlendValue.IsZero() || !SrcBlendAlphaValue.IsOne() || !DestBlendAlphaValue.IsZero())
 			{
-				writer.WriteIndent(3);
 				writer.Write("Blend ");
 				if(index != -1)
 				{
@@ -30,12 +29,11 @@ namespace uTinyRipper.Classes.Shaders
 				{
 					writer.Write(", {0} {1}", SrcBlendAlphaValue, DestBlendAlphaValue);
 				}
-				writer.Write('\n');
+				writer.WriteLine();
 			}
 
 			if(!BlendOpValue.IsAdd() || !BlendOpAlphaValue.IsAdd())
 			{
-				writer.WriteIndent(3);
 				writer.Write("BlendOp ");
 				if(index != -1)
 				{
@@ -46,12 +44,11 @@ namespace uTinyRipper.Classes.Shaders
 				{
 					writer.Write(", {0}", BlendOpAlphaValue);
 				}
-				writer.Write('\n');
+				writer.WriteLine();
 			}
 			
 			if(!ColMaskValue.IsRBGA())
 			{
-				writer.WriteIndent(3);
 				writer.Write("ColorMask ");
 				if (ColMaskValue.IsNone())
 				{
@@ -76,7 +73,7 @@ namespace uTinyRipper.Classes.Shaders
 						writer.Write(nameof(ColorMask.A));
 					}
 				}
-				writer.Write(" {0}\n", index);
+				writer.WriteLine(" {0}", index);
 			}
 		}
 

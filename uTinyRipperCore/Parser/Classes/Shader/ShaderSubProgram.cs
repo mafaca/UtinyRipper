@@ -320,8 +320,7 @@ namespace uTinyRipper.Classes.Shaders
 						writer.Write("\"{0}\" ", keyword);
 					}
 				}
-				writer.Write("}\n");
-				writer.WriteIndent(5);
+				writer.WriteLine("}");
 			}
 
 #warning TODO: convertion (DX to HLSL)
@@ -329,9 +328,7 @@ namespace uTinyRipper.Classes.Shaders
 			writer.Write("\"{0}", programType.ToProgramDataKeyword(writer.Platform, type));
 			if (ProgramData.Length > 0)
 			{
-				writer.Write("\n");
-				writer.WriteIndent(5);
-
+				writer.WriteLine();
 				writer.WriteShaderData(ref this);
 			}
 			writer.Write('"');

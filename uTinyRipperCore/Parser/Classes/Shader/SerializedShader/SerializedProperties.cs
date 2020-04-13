@@ -9,16 +9,16 @@ namespace uTinyRipper.Classes.Shaders
 			Props = reader.ReadAssetArray<SerializedProperty>();
 		}
 
-		public void Export(TextWriter writer)
+		public void Export(ShaderWriter writer)
 		{
-			writer.WriteIndent(1);
-			writer.Write("Properties {\n");
-			foreach(SerializedProperty prop in Props)
+			writer.Write("Properties ");
+			using (writer.IndentBrackets())
 			{
-				prop.Export(writer);
+				foreach (SerializedProperty prop in Props)
+				{
+					prop.Export(writer);
+				}
 			}
-			writer.WriteIndent(1);
-			writer.Write("}\n");
 		}
 
 		public SerializedProperty[] Props { get; set; }

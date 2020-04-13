@@ -58,7 +58,7 @@ namespace uTinyRipperGUI.Exporters
 						decodedStream.Position = 0;
 						Module module = Module.ReadFrom(decodedStream);
 						string listing = m_disassembler.Disassemble(module, DisassemblyOptions.Default);
-						ExportListing(writer, listing);
+						writer.Write(listing);
 					}
 					else
 					{

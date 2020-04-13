@@ -11,20 +11,19 @@ namespace uTinyRipper.Classes.Shaders
 
 		public void Export(ShaderWriter writer)
 		{
-			writer.WriteIndent(1);
-			writer.Write("SubShader {\n");
-			if(LOD != 0)
+			writer.Write("SubShader ");
+			using (writer.IndentBrackets())
 			{
-				writer.WriteIndent(2);
-				writer.Write("LOD {0}\n", LOD);
+				if (LOD != 0)
+				{
+					writer.WriteLine("LOD {0}", LOD);
+				}
+				Tags.Export(writer);
+				for (int i = 0; i < Passes.Length; i++)
+				{
+					Passes[i].Export(writer);
+				}
 			}
-			Tags.Export(writer, 2);
-			for (int i = 0; i < Passes.Length; i++)
-			{
-				Passes[i].Export(writer);
-			}
-			writer.WriteIndent(1);
-			writer.Write("}\n");
 		}
 
 		public SerializedPass[] Passes { get; set; }

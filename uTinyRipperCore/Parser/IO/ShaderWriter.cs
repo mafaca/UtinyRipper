@@ -7,10 +7,10 @@ using uTinyRipper.Converters.Shaders;
 
 namespace uTinyRipper
 {
-	public class ShaderWriter : InvariantStreamWriter
+	public class ShaderWriter : IndentedTextWriter
 	{
-		public ShaderWriter(Stream stream, Shader shader, Func<Version, GPUPlatform, ShaderTextExporter> exporterInstantiator) :
-			base(stream, new UTF8Encoding(false), 4096, true)
+		public ShaderWriter(TextWriter inner, Shader shader, Func<Version, GPUPlatform, ShaderTextExporter> exporterInstantiator) :
+			base(inner)
 		{
 			if(shader == null)
 			{

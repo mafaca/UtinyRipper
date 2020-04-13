@@ -53,19 +53,17 @@ namespace uTinyRipper.Classes.Shaders
 			reader.AlignStream();
 		}
 
-		public void Export(TextWriter writer)
+		public void Export(ShaderWriter writer)
 		{
 			if (Name != string.Empty)
 			{
-				writer.WriteIndent(3);
-				writer.Write("Name \"{0}\"\n", Name);
+				writer.WriteLine("Name \"{0}\"", Name);
 			}
 			if (LOD != 0)
 			{
-				writer.WriteIndent(3);
-				writer.Write("LOD {0}\n", LOD);
+				writer.WriteLine("LOD {0}", LOD);
 			}
-			Tags.Export(writer, 3);
+			Tags.Export(writer);
 			
 			RtBlend0.Export(writer, RtSeparateBlend ? 0 : -1);
 			RtBlend1.Export(writer, 1);
@@ -78,112 +76,97 @@ namespace uTinyRipper.Classes.Shaders
 
 			if (AlphaToMaskValue)
 			{
-				writer.WriteIndent(3);
-				writer.Write("AlphaToMask On\n");
+				writer.WriteLine("AlphaToMask On");
 			}
 
 			if (!ZClipValue.IsOn())
 			{
-				writer.WriteIndent(3);
-				writer.Write("ZClip {0}\n", ZClipValue);
+				writer.WriteLine("ZClip {0}", ZClipValue);
 			}
 			if (!ZTestValue.IsLEqual() && !ZTestValue.IsNone())
 			{
-				writer.WriteIndent(3);
-				writer.Write("ZTest {0}\n", ZTestValue);
+				writer.WriteLine("ZTest {0}", ZTestValue);
 			}
 			if (!ZWriteValue.IsOn())
 			{
-				writer.WriteIndent(3);
-				writer.Write("ZWrite {0}\n", ZWriteValue);
+				writer.WriteLine("ZWrite {0}", ZWriteValue);
 			}
 			if (!CullingValue.IsBack())
 			{
-				writer.WriteIndent(3);
-				writer.Write("Cull {0}\n", CullingValue);
+				writer.WriteLine("Cull {0}", CullingValue);
 			}
 			if (!OffsetFactor.IsZero || !OffsetUnits.IsZero)
 			{
-				writer.WriteIndent(3);
-				writer.Write("Offset {0}, {1}\n", OffsetFactor.Val, OffsetUnits.Val);
+				writer.WriteLine("Offset {0}, {1}", OffsetFactor.Val, OffsetUnits.Val);
 			}
 
 			if (!StencilRef.IsZero || !StencilReadMask.IsMax || !StencilWriteMask.IsMax || !StencilOp.IsDefault || !StencilOpFront.IsDefault || !StencilOpBack.IsDefault)
 			{
-				writer.WriteIndent(3);
-				writer.Write("Stencil {\n");
-				if(!StencilRef.IsZero)
+				writer.Write("Stencil ");
+				using (writer.IndentBrackets())
 				{
-					writer.WriteIndent(4);
-					writer.Write("Ref {0}\n", StencilRef.Val);
+					if (!StencilRef.IsZero)
+					{
+						writer.WriteLine("Ref {0}", StencilRef.Val);
+					}
+					if (!StencilReadMask.IsMax)
+					{
+						writer.WriteLine("ReadMask {0}", StencilReadMask.Val);
+					}
+					if (!StencilWriteMask.IsMax)
+					{
+						writer.WriteLine("WriteMask {0}", StencilWriteMask.Val);
+					}
+					if (!StencilOp.IsDefault)
+					{
+						StencilOp.Export(writer, StencilType.Base);
+					}
+					if (!StencilOpFront.IsDefault)
+					{
+						StencilOpFront.Export(writer, StencilType.Front);
+					}
+					if (!StencilOpBack.IsDefault)
+					{
+						StencilOpBack.Export(writer, StencilType.Back);
+					}
 				}
-				if(!StencilReadMask.IsMax)
-				{
-					writer.WriteIndent(4);
-					writer.Write("ReadMask {0}\n", StencilReadMask.Val);
-				}
-				if(!StencilWriteMask.IsMax)
-				{
-					writer.WriteIndent(4);
-					writer.Write("WriteMask {0}\n", StencilWriteMask.Val);
-				}
-				if(!StencilOp.IsDefault)
-				{
-					StencilOp.Export(writer, StencilType.Base);
-				}
-				if(!StencilOpFront.IsDefault)
-				{
-					StencilOpFront.Export(writer, StencilType.Front);
-				}
-				if(!StencilOpBack.IsDefault)
-				{
-					StencilOpBack.Export(writer, StencilType.Back);
-				}
-				writer.WriteIndent(3);
-				writer.Write("}\n");
 			}
 			
 			if(!FogMode.IsUnknown() || !FogColor.IsZero || !FogDensity.IsZero || !FogStart.IsZero || !FogEnd.IsZero)
 			{
-				writer.WriteIndent(3);
-				writer.Write("Fog {\n");
-				if(!FogMode.IsUnknown())
+				writer.Write("Fog ");
+				using (writer.IndentBrackets())
 				{
-					writer.WriteIndent(4);
-					writer.Write("Mode {0}\n", FogMode);
+					if (!FogMode.IsUnknown())
+					{
+						writer.WriteLine("Mode {0}", FogMode);
+					}
+					if (!FogColor.IsZero)
+					{
+						writer.WriteLine("Color ({0},{1},{2},{3})",
+							FogColor.X.Val.ToString(CultureInfo.InvariantCulture),
+							FogColor.Y.Val.ToString(CultureInfo.InvariantCulture),
+							FogColor.Z.Val.ToString(CultureInfo.InvariantCulture),
+							FogColor.W.Val.ToString(CultureInfo.InvariantCulture));
+					}
+					if (!FogDensity.IsZero)
+					{
+						writer.WriteLine("Density {0}", FogDensity.Val.ToString(CultureInfo.InvariantCulture));
+					}
+					if (!FogStart.IsZero || !FogEnd.IsZero)
+					{
+						writer.WriteLine("Range {0}, {1}",
+							FogStart.Val.ToString(CultureInfo.InvariantCulture),
+							FogEnd.Val.ToString(CultureInfo.InvariantCulture));
+					}
 				}
-				if (!FogColor.IsZero)
-				{
-					writer.WriteIndent(4);
-					writer.Write("Color ({0},{1},{2},{3})\n",
-						FogColor.X.Val.ToString(CultureInfo.InvariantCulture),
-						FogColor.Y.Val.ToString(CultureInfo.InvariantCulture),
-						FogColor.Z.Val.ToString(CultureInfo.InvariantCulture),
-						FogColor.W.Val.ToString(CultureInfo.InvariantCulture));
-				}
-				if (!FogDensity.IsZero)
-				{
-					writer.WriteIndent(4);
-					writer.Write("Density {0}\n", FogDensity.Val.ToString(CultureInfo.InvariantCulture));
-				}
-				if (!FogStart.IsZero ||!FogEnd.IsZero)
-				{
-					writer.WriteIndent(4);
-					writer.Write("Range {0}, {1}\n",
-						FogStart.Val.ToString(CultureInfo.InvariantCulture),
-						FogEnd.Val.ToString(CultureInfo.InvariantCulture));
-				}
-				writer.WriteIndent(3);
-				writer.Write("}\n");
 			}
 
 			if(Lighting)
 			{
-				writer.WriteIndent(3);
-				writer.Write("Lighting {0}\n", LightingValue);
+				writer.WriteLine("Lighting {0}", LightingValue);
 			}
-			writer.WriteIndent(3);
-			writer.Write("GpuProgramID {0}\n", GpuProgramID);
+			writer.WriteLine("GpuProgramID {0}", GpuProgramID);
 		}
 
 		public string Name { get; set; }

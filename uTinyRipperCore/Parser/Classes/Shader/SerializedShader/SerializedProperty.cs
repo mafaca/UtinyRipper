@@ -20,9 +20,8 @@ namespace uTinyRipper.Classes.Shaders
 			DefTexture.Read(reader);
 		}
 
-		public void Export(TextWriter writer)
+		public void Export(ShaderWriter writer)
 		{
-			writer.WriteIndent(2);
 			foreach(string attribute in Attributes)
 			{
 				writer.Write("[{0}] ", attribute);
@@ -133,7 +132,7 @@ namespace uTinyRipper.Classes.Shaders
 				default:
 					throw new NotSupportedException($"Serialized property type {Type} isn't supported");
 			}
-			writer.Write('\n');
+			writer.WriteLine();
 		}
 
 		public string Name { get; set; }

@@ -16,28 +16,26 @@ namespace uTinyRipper.Classes.Shaders
 
 		public void Export(ShaderWriter writer)
 		{
-			writer.Write("Shader \"{0}\" {{\n", Name);
-
-			PropInfo.Export(writer);
-
-			for (int i = 0; i < SubShaders.Length; i++)
+			writer.Write("Shader \"{0}\" ", Name);
+			using (writer.IndentBrackets())
 			{
-				SubShaders[i].Export(writer);
-			}
+				PropInfo.Export(writer);
 
-			if (FallbackName.Length != 0)
-			{
-				writer.WriteIndent(1);
-				writer.Write("Fallback \"{0}\"\n", FallbackName);
-			}
+				for (int i = 0; i < SubShaders.Length; i++)
+				{
+					SubShaders[i].Export(writer);
+				}
 
-			if (CustomEditorName.Length != 0)
-			{
-				writer.WriteIndent(1);
-				writer.Write("CustomEditor \"{0}\"\n", CustomEditorName);
-			}
+				if (FallbackName.Length != 0)
+				{
+					writer.WriteLine("Fallback \"{0}\"", FallbackName);
+				}
 
-			writer.Write('}');
+				if (CustomEditorName.Length != 0)
+				{
+					writer.WriteLine("CustomEditor \"{0}\"", CustomEditorName);
+				}
+			}
 		}
 
 		public SerializedSubShader[] SubShaders { get; set; }

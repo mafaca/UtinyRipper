@@ -12,16 +12,12 @@ namespace uTinyRipper.Classes.Shaders
 			Comp.Read(reader);
 		}
 
-		public void Export(TextWriter writer, StencilType type)
+		public void Export(ShaderWriter writer, StencilType type)
 		{
-			writer.WriteIndent(4);
-			writer.Write("Comp{0} {1}\n", type.ToSuffixString(), CompValue);
-			writer.WriteIndent(4);
-			writer.Write("Pass{0} {1}\n", type.ToSuffixString(), PassValue);
-			writer.WriteIndent(4);
-			writer.Write("Fail{0} {1}\n", type.ToSuffixString(), FailValue);
-			writer.WriteIndent(4);
-			writer.Write("ZFail{0} {1}\n", type.ToSuffixString(), ZFailValue);
+			writer.WriteLine("Comp{0} {1}", type.ToSuffixString(), CompValue);
+			writer.WriteLine("Pass{0} {1}", type.ToSuffixString(), PassValue);
+			writer.WriteLine("Fail{0} {1}", type.ToSuffixString(), FailValue);
+			writer.WriteLine("ZFail{0} {1}", type.ToSuffixString(), ZFailValue);
 		}
 
 		public bool IsDefault => PassValue.IsKeep() && FailValue.IsKeep() && ZFailValue.IsKeep() && CompValue.IsAlways();

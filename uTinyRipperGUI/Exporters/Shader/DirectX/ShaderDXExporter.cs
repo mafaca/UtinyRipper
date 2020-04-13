@@ -34,7 +34,7 @@ namespace uTinyRipperGUI.Exporters
 
 			D3DCompiler.D3DCompiler.D3DDisassemble(unmanagedPointer, (uint)dataLength, 0, null, out IDxcBlob disassembly);
 			string disassemblyText = GetStringFromBlob(disassembly);
-			ExportListing(writer, disassemblyText);
+			writer.Write(disassemblyText);
 
 			Marshal.FreeHGlobal(unmanagedPointer);
 		}

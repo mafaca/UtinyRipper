@@ -12,17 +12,16 @@ namespace uTinyRipper.Classes.Shaders
 			m_tags.Read(reader);
 		}
 
-		public void Export(TextWriter writer, int intent)
+		public void Export(ShaderWriter writer)
 		{
 			if(Tags.Count != 0)
 			{
-				writer.WriteIndent(intent);
 				writer.Write("Tags { ");
-				foreach(var kvp in Tags)
+				foreach(KeyValuePair<string, string> kvp in Tags)
 				{
 					writer.Write("\"{0}\" = \"{1}\" ", kvp.Key, kvp.Value);
 				}
-				writer.Write("}\n");
+				writer.WriteLine("}");
 			}
 		}
 

@@ -182,23 +182,29 @@ namespace uTinyRipper.Classes
 		{
 			if (IsSerialized(container.Version))
 			{
-				using (ShaderWriter writer = new ShaderWriter(stream, this, exporterInstantiator))
+				using (InvariantStreamWriter streamWriter = new InvariantStreamWriter(stream, new UTF8Encoding(false), 4096, true))
 				{
-					ParsedForm.Export(writer);
+					using (ShaderWriter writer = new ShaderWriter(streamWriter, this, exporterInstantiator))
+					{
+						ParsedForm.Export(writer);
+					}
 				}
 			}
 			else if (HasBlob(container.Version))
 			{
-				using (ShaderWriter writer = new ShaderWriter(stream, this, exporterInstantiator))
+				using (InvariantStreamWriter streamWriter = new InvariantStreamWriter(stream, new UTF8Encoding(false), 4096, true))
 				{
-					string header = Encoding.UTF8.GetString(Script);
-					if (Blobs.Length == 0)
+					using (ShaderWriter writer = new ShaderWriter(streamWriter, this, exporterInstantiator))
 					{
-						writer.Write(header);
-					}
-					else
-					{
-						Blobs[0].Export(writer, header);
+						string header = Encoding.UTF8.GetString(Script);
+						if (Blobs.Length == 0)
+						{
+							writer.Write(header);
+						}
+						else
+						{
+							Blobs[0].Export(writer, header);
+						}
 					}
 				}
 			}
