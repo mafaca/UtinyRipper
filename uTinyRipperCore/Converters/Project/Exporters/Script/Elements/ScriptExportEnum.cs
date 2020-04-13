@@ -6,9 +6,8 @@ namespace uTinyRipper.Converters.Script
 {
 	public abstract class ScriptExportEnum : ScriptExportType
 	{
-		public sealed override void Export(TextWriter writer, int intent)
+		public sealed override void Export(CodeWriter writer)
 		{
-			writer.WriteIndent(intent);
 			writer.Write("{0} enum {1}", Keyword, TypeName);
 			if (Base != null && Base.TypeName != MonoUtils.IntName)
 			{
@@ -16,16 +15,13 @@ namespace uTinyRipper.Converters.Script
 			}
 			writer.WriteLine();
 
-			writer.WriteIndent(intent++);
-			writer.WriteLine('{');
-
-			foreach (ScriptExportField field in Fields)
+			using (writer.IndentBrackets())
 			{
-				field.ExportEnum(writer, intent);
+				foreach (ScriptExportField field in Fields)
+				{
+					field.ExportEnum(writer);
+				}
 			}
-
-			writer.WriteIndent(--intent);
-			writer.WriteLine('}');
 		}
 
 		public sealed override bool HasMember(string name)

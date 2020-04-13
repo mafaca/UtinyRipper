@@ -8,14 +8,13 @@ namespace uTinyRipper.Converters.Script
 	{
 		public abstract void Init(IScriptExportManager manager);
 
-		public void Export(TextWriter writer, int intent)
+		public void Export(CodeWriter writer)
 		{
 			foreach (ScriptExportAttribute attribute in Attributes)
 			{
-				attribute.Export(writer, intent);
+				attribute.Export(writer);
 			}
 
-			writer.WriteIndent(intent);
 			writer.Write("{0} ", Keyword);
 			if (IsNew)
 			{
@@ -26,11 +25,10 @@ namespace uTinyRipper.Converters.Script
 			writer.WriteLine("{0} {1};", typeName, Name);
 		}
 
-		public void ExportEnum(TextWriter writer, int intent)
+		public void ExportEnum(CodeWriter writer)
 		{
 			if (Type.IsEnum)
 			{
-				writer.WriteIndent(intent);
 				writer.WriteLine("{0} = {1},", Name, Constant);
 			}
 			else

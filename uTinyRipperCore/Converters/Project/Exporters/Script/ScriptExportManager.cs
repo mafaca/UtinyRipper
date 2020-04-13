@@ -128,7 +128,10 @@ namespace uTinyRipper.Converters.Script
 			{
 				using (StreamWriter writer = new InvariantStreamWriter(fileStream, new UTF8Encoding(false)))
 				{
-					exportType.Export(writer);
+					using (CodeWriter code = new CodeWriter(writer))
+					{
+						exportType.ExportAsFile(code);
+					}
 				}
 			}
 			AddExportedType(exportType);

@@ -7,35 +7,31 @@ namespace uTinyRipper.Converters.Script
 	{
 		public abstract void Init(IScriptExportManager manager);
 
-		public void Export(TextWriter writer, int intent)
+		public void Export(CodeWriter writer)
 		{
-			writer.WriteIndent(intent);
 			string sharedKeyword = PropertyKeyword;
 			writer.WriteLine("{0} override {1} {2}", sharedKeyword, Type.GetTypeNestedName(DeclaringType), Name);
-			writer.WriteIndent(intent);
-			writer.WriteLine("{");
 
-			if (HasGetter)
+			using (writer.IndentBrackets())
 			{
-				writer.WriteIndent(intent + 1);
-				if (GetKeyword != sharedKeyword)
+				if (HasGetter)
 				{
-					writer.WriteLine("{0} ", GetKeyword);
-				}
-				writer.WriteLine("get {{ return default({0}); }}", Type.NestedName);
-			}
-			if (HasSetter)
-			{
-				writer.WriteIndent(intent + 1);
-				if (SetKeyword != sharedKeyword)
-				{
-					writer.WriteLine("{0} ", SetKeyword);
-				}
-				writer.WriteLine("set {}");
-			}
+					if (GetKeyword != sharedKeyword)
+					{
+						writer.WriteLine("{0} ", GetKeyword);
+					}
 
-			writer.WriteIndent(intent);
-			writer.WriteLine("}");
+					writer.WriteLine("get {{ return default({0}); }}", Type.NestedName);
+				}
+				if (HasSetter)
+				{
+					if (SetKeyword != sharedKeyword)
+					{
+						writer.WriteLine("{0} ", SetKeyword);
+					}
+					writer.WriteLine("set {}");
+				}
+			}
 		}
 
 		public void GetUsedNamespaces(ICollection<string> namespaces)

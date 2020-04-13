@@ -7,9 +7,8 @@ namespace uTinyRipper.Converters.Script
 	{
 		public abstract void Init(IScriptExportManager manager);
 
-		public void Export(TextWriter writer, int intent)
+		public void Export(CodeWriter writer)
 		{
-			writer.WriteIndent(intent);
 			writer.WriteLine("[{0}]", Name);
 		}
 

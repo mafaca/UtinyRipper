@@ -6,14 +6,13 @@ namespace uTinyRipper.Converters.Script
 {
 	public abstract class ScriptExportDelegate : ScriptExportType
 	{
-		public sealed override void Export(TextWriter writer, int intent)
+		public sealed override void Export(CodeWriter writer)
 		{
-			writer.WriteIndent(intent);
 			writer.Write("{0} delegate {1} {2}(", Keyword, Return.NestedName, TypeName);
 			for (int i = 0; i < Parameters.Count; i++)
 			{
 				ScriptExportParameter parameter = Parameters[i];
-				parameter.Export(writer, intent);
+				parameter.Export(writer);
 				if (i < Parameters.Count - 1)
 				{
 					writer.Write(',');

@@ -8,81 +8,78 @@ namespace uTinyRipper.Converters.Script
 	{
 		public abstract void Init(IScriptExportManager manager);
 
-		public void Export(TextWriter writer)
+		public void ExportAsFile(CodeWriter writer)
 		{
 			ExportUsings(writer);
 			if (Namespace == string.Empty)
 			{
-				Export(writer, 0);
+				Export(writer);
 			}
 			else
 			{
 				writer.WriteLine("namespace {0}", Namespace);
-				writer.WriteLine('{');
-				Export(writer, 1);
-				writer.WriteLine('}');
+				using (writer.IndentBrackets())
+				{
+					Export(writer);
+				}
 			}
 		}
 
-		public virtual void Export(TextWriter writer, int intent)
+		public virtual void Export(CodeWriter writer)
 		{
 			if (IsSerializable)
 			{
-				writer.WriteIndent(intent);
 				writer.WriteLine("[{0}]", ScriptExportAttribute.SerializableName);
 			}
 
-			writer.WriteIndent(intent);
 			writer.Write("{0} {1} {2}", Keyword, IsStruct ? "struct" : "class", TypeName);
 			if (Base != null && !SerializableType.IsBasic(Base.Namespace, Base.NestedName))
 			{
 				writer.Write(" : {0}", Base.GetTypeNestedName(DeclaringType));
 			}
 			writer.WriteLine();
-			writer.WriteIndent(intent++);
-			writer.WriteLine('{');
 
-			foreach (ScriptExportType nestedType in NestedTypes)
+			using (writer.IndentBrackets())
 			{
-				nestedType.Export(writer, intent);
-				writer.WriteLine();
-			}
+				foreach (ScriptExportType nestedType in NestedTypes)
+				{
+					nestedType.Export(writer);
+					writer.WriteLine();
+				}
 
-			foreach (ScriptExportEnum nestedEnum in NestedEnums)
-			{
-				nestedEnum.Export(writer, intent);
-				writer.WriteLine();
-			}
+				foreach (ScriptExportEnum nestedEnum in NestedEnums)
+				{
+					nestedEnum.Export(writer);
+					writer.WriteLine();
+				}
 
-			foreach (ScriptExportDelegate @delegate in Delegates)
-			{
-				@delegate.Export(writer, intent);
-			}
-			if (Delegates.Count > 0)
-			{
-				writer.WriteLine();
-			}
+				foreach (ScriptExportDelegate @delegate in Delegates)
+				{
+					@delegate.Export(writer);
+				}
+				if (Delegates.Count > 0)
+				{
+					writer.WriteLine();
+				}
 
-			foreach (ScriptExportMethod method in Methods)
-			{
-				method.Export(writer, intent);
-				writer.WriteLine();
+				foreach (ScriptExportMethod method in Methods)
+				{
+					method.Export(writer);
+					writer.WriteLine();
+				}
+				foreach (ScriptExportProperty property in Properties)
+				{
+					property.Export(writer);
+				}
+				if (Properties.Count > 0)
+				{
+					writer.WriteLine();
+				}
+				foreach (ScriptExportField field in Fields)
+				{
+					field.Export(writer);
+				}
 			}
-			foreach (ScriptExportProperty property in Properties)
-			{
-				property.Export(writer, intent);
-			}
-			if (Properties.Count > 0)
-			{
-				writer.WriteLine();
-			}
-			foreach (ScriptExportField field in Fields)
-			{
-				field.Export(writer, intent);
-			}
-
-			writer.WriteIndent(--intent);
-			writer.WriteLine('}');
 		}
 
 		public virtual void GetTypeNamespaces(ICollection<string> namespaces)
@@ -177,7 +174,7 @@ namespace uTinyRipper.Converters.Script
 			DeclaringType.m_nestedDelegates.Add((ScriptExportDelegate)this);
 		}
 
-		private void ExportUsings(TextWriter writer)
+		private void ExportUsings(CodeWriter writer)
 		{
 			HashSet<string> namespaces = new HashSet<string>();
 			GetUsedNamespaces(namespaces);
