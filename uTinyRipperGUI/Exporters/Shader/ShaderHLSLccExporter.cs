@@ -43,7 +43,7 @@ namespace uTinyRipperGUI.Exporters
 						}
 						else
 						{
-							writer.Write(shader.Text);
+							writer.WriteIndentedFull(shader.Text.Trim());
 						}
 					}
 				}

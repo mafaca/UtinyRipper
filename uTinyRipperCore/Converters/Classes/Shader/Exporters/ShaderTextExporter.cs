@@ -12,7 +12,7 @@ namespace uTinyRipper.Converters.Shaders
 			{
 				using (StreamReader reader = new StreamReader(memStream))
 				{
-					writer.Write(reader.ReadToEnd());
+					writer.WriteIndentedFull(reader.ReadToEnd().Trim());
 				}
 			}
 		}

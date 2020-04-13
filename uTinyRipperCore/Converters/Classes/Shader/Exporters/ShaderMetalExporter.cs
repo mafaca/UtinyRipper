@@ -29,7 +29,7 @@ namespace uTinyRipper.Converters.Shaders
 
 					using (StreamReader streamReader = new StreamReader(reader.BaseStream))
 					{
-						writer.Write(streamReader.ReadToEnd());
+						writer.WriteIndentedFull(streamReader.ReadToEnd().Trim());
 					}
 				}
 			}

@@ -42,7 +42,7 @@ namespace uTinyRipperGUI.Exporters
 			}
 		}
 
-		private void ExportSnippet(TextWriter writer, Stream stream, int offset, int size)
+		private void ExportSnippet(ShaderWriter writer, Stream stream, int offset, int size)
 		{
 			using (PartialStream snippetStream = new PartialStream(stream, offset, size))
 			{
@@ -58,7 +58,7 @@ namespace uTinyRipperGUI.Exporters
 						decodedStream.Position = 0;
 						Module module = Module.ReadFrom(decodedStream);
 						string listing = m_disassembler.Disassemble(module, DisassemblyOptions.Default);
-						writer.Write(listing);
+						writer.WriteIndentedFull(listing.Trim());
 					}
 					else
 					{
