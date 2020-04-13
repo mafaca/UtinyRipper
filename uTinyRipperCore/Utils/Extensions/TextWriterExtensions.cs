@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace uTinyRipper
@@ -18,6 +19,17 @@ namespace uTinyRipper
 			{
 				writer.Write('\t');
 			}
+		}
+		
+		public static IDisposable IndentBrackets(this IndentedTextWriter writer)
+		{
+			writer.WriteLine("{");
+			IDisposable indent = writer.Indent();
+			return new DisposableHelper(() =>
+			{
+				indent.Dispose();
+				writer.WriteLine("}");
+			});
 		}
 	}
 }
