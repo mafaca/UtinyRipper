@@ -12,14 +12,6 @@ namespace uTinyRipper
 				writer.Write(@string[i]);
 			}
 		}
-
-		public static void WriteIndent(this TextWriter writer, int count)
-		{
-			for (int i = 0; i < count; i++)
-			{
-				writer.Write('\t');
-			}
-		}
 		
 		public static IDisposable IndentBrackets(this IndentedTextWriter writer)
 		{
