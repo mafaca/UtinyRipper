@@ -85,7 +85,7 @@ namespace uTinyRipper.Project
 				DirectoryUtils.CreateVirtualDirectory(path);
 			}
 
-			string fullName = $"{name}.{GetExportExtension(asset)}";
+			string fullName = AddExportExtension(name, asset);//$"{name}.{GetExportExtension(asset)}"
 			string uniqueName = FileUtils.GetUniqueName(path, fullName, FileUtils.MaxFileNameLength - MetaExtension.Length);
 			string filePath = Path.Combine(path, uniqueName);
 			AssetExporter.Export(container, asset, filePath);
@@ -114,7 +114,7 @@ namespace uTinyRipper.Project
 			}
 			fileName = FileNameRegex.Replace(fileName, string.Empty);
 
-			fileName = $"{fileName}.{GetExportExtension(asset)}";
+			fileName = AddExportExtension(fileName, asset);//$"{fileName}.{GetExportExtension(asset)}"
 			return GetUniqueFileName(dirPath, fileName);
 		}
 
@@ -126,6 +126,12 @@ namespace uTinyRipper.Project
 		protected virtual string GetExportExtension(Object asset)
 		{
 			return asset.ExportExtension;
+		}
+
+		protected virtual string AddExportExtension(string assetPath, Object asset)
+		{
+			var exportExtension = GetExportExtension(asset);
+			return string.IsNullOrWhiteSpace(exportExtension) ? assetPath : $"{assetPath}.{exportExtension}";
 		}
 
 		public abstract IAssetExporter AssetExporter { get; }
