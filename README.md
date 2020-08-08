@@ -1,3 +1,7 @@
+THIS VERSION RIPS CONFIGURABLE JOINTS (MAIN BRANCH DOESN'T/DIDN'T AT TIME OF FORK)
+NOTE:GOOD FOR RIPPING TABx
+
+
 # uTinyRipper
 [![Download uTinyRipper](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/utinyripper/files)
 
