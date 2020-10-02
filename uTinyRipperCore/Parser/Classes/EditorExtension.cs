@@ -14,7 +14,7 @@ namespace uTinyRipper.Classes
 		{
 		}
 
-		protected EditorExtension(AssetInfo assetInfo):
+		protected EditorExtension(AssetInfo assetInfo) :
 			base(assetInfo)
 		{
 		}
@@ -87,7 +87,15 @@ namespace uTinyRipper.Classes
 			}
 #endif
 		}
+		public override IEnumerable<Object> FetchDependencies(ISerializedFile file, bool isLog = false)
+		{
+			foreach (Object asset in base.FetchDependencies(file, isLog))
+			{
+				yield return asset;
+			}
 
+
+		}
 		protected override YAMLMappingNode ExportYAMLRoot(IExportContainer container)
 		{
 			YAMLMappingNode node = base.ExportYAMLRoot(container);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using uTinyRipper.Classes;
 
 using Object = uTinyRipper.Classes.Object;
@@ -76,6 +77,11 @@ namespace uTinyRipper
 					return new PhysicsManager(assetInfo);
 				case ClassIDType.CircleCollider2D:
 					return new CircleCollider2D(assetInfo);
+				/*joint code added*/
+				case ClassIDType.HingeJoint:
+					return new HingeJoint(assetInfo);
+				/*end joint code added*/
+
 				case ClassIDType.PolygonCollider2D:
 					return new PolygonCollider2D(assetInfo);
 				case ClassIDType.BoxCollider2D:
@@ -152,10 +158,21 @@ namespace uTinyRipper
 					return new CapsuleCollider(assetInfo);
 				case ClassIDType.SkinnedMeshRenderer:
 					return new SkinnedMeshRenderer(assetInfo);
+				/*joint code added*/
+				case ClassIDType.FixedJoint:
+					return new FixedJoint(assetInfo);
+				/*end joint code added*/
 				case ClassIDType.BuildSettings:
 					return new BuildSettings(assetInfo);
 				case ClassIDType.CharacterController:
 					return new CharacterController(assetInfo);
+				/*joint code added*/
+				case ClassIDType.CharacterJoint:
+					return new CharacterJoint(assetInfo);
+				case ClassIDType.SpringJoint:
+					return new SpringJoint(assetInfo);
+				/*joint code added*/
+
 				case ClassIDType.AssetBundle:
 					return new AssetBundle(assetInfo);
 				case ClassIDType.WheelCollider:
@@ -168,6 +185,12 @@ namespace uTinyRipper
 					return new PreloadData(assetInfo);
 				case ClassIDType.MovieTexture:
 					return new MovieTexture(assetInfo);
+				/*joint code added*/
+				case ClassIDType.ConfigurableJoint:
+					return new ConfigurableJoint(assetInfo);
+
+				/*joint code added*/
+
 				case ClassIDType.TerrainCollider:
 					return new TerrainCollider(assetInfo);
 				case ClassIDType.TerrainData:

@@ -42,7 +42,10 @@ namespace uTinyRipper.Classes
 				writer.Write((uint)ObjectHideFlags);
 			}
 		}
-
+		public virtual IEnumerable<Object> FetchDependencies(ISerializedFile file, bool isLog = false)
+		{
+			yield break;
+		}
 		public YAMLDocument ExportYAMLDocument(IExportContainer container)
 		{
 			YAMLDocument document = new YAMLDocument();
@@ -70,6 +73,10 @@ namespace uTinyRipper.Classes
 		public virtual IEnumerable<PPtr<Object>> FetchDependencies(DependencyContext context)
 		{
 			yield break;
+		}
+		public virtual string ToLogString()
+		{
+			return $"{GetType().Name}[{PathID}]";
 		}
 
 		protected virtual YAMLMappingNode ExportYAMLRoot(IExportContainer container)

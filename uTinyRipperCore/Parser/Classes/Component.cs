@@ -69,6 +69,19 @@ namespace uTinyRipper.Classes
 			return node;
 		}
 
+		public override IEnumerable<Object> FetchDependencies(ISerializedFile file, bool isLog = false)
+		{
+			foreach (Object asset in base.FetchDependencies(file, isLog))
+			{
+				yield return asset;
+			}
+
+			if (!GameObject.IsNull)
+			{
+				yield return GameObject.GetAsset(file);
+			}
+		}
+
 		public override string ExportExtension => throw new NotSupportedException();
 
 		public PPtr<GameObject> GameObject;

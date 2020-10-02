@@ -1,4 +1,5 @@
 ﻿using System;
+
 using uTinyRipper.Converters;
 using uTinyRipper.SerializedFiles;
 using uTinyRipper.YAML;
@@ -156,6 +157,28 @@ namespace uTinyRipper.Classes
 			string depName = FileIndex == 0 ? container.Name : container.Dependencies[FileIndex - 1].PathNameOrigin;
 			ClassIDType classID = typeof(T).ToClassIDType();
 			return $"[{depName}]{classID}_{PathID}";
+		}
+
+		public Object FetchDependency(ISerializedFile file, bool isLog, Func<string> owner, string name)
+		{
+			if (IsNull)
+			{
+				return null;
+			}
+
+			T obj = FindAsset(file);
+			if (obj == null)
+			{
+				if (isLog)
+				{
+					Logger.Log(LogType.Warning, LogCategory.Export, $"{owner.Invoke()}'s {name} {ToLogString(file)} hasn't been found");
+				}
+			}
+			else
+			{
+				return obj;
+			}
+			return null;
 		}
 
 		public override bool Equals(object obj)

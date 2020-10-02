@@ -648,6 +648,12 @@ namespace uTinyRipper
 			BaseStream.Position = (BaseStream.Position + 3) & ~3;
 		}
 
+		public void AlignStream(AlignType alignType)
+		{
+			long align = (long)alignType;
+			BaseStream.Position = AlignPosition + ((BaseStream.Position - AlignPosition + align) & ~align);
+		}
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		protected ushort BufferToUInt16(int offset = 0)
 		{
@@ -735,6 +741,8 @@ namespace uTinyRipper
 		public EndianType EndianType { get; }
 
 		protected bool IsAlignArray { get; }
+
+		protected long AlignPosition { get; }
 
 		protected const int BufferSize = 4096;
 
